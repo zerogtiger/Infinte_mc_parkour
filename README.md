@@ -1,4 +1,4 @@
-# Brainrot: Mindless Minecraft Parkour
+# Infinite Minecraft Parkour: Mindless Minecraft Parkour
 
 ## Core features
 

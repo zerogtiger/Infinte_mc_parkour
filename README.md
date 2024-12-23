@@ -11,9 +11,9 @@ Key objective:
 - [ ] Switching biomes at checkpoints (transitions into new biome as some form of checkpoint is reached)
 - [ ] Seed based map generation
 - [ ] Checkpoints
-    - [ ] Auto-reset
-- [ ] Modes: endless vs levels
-    - [ ] Levels (with difficulty varying algorithms)
+    - [ ] Auto-reset upon death
+- [ ] Modes: endless, levels
+    - [ ] Levels (with difficulty varying generation algorithms)
 - [ ] Worldwide regional leaderboard / weekly leaderboards
 - [ ] Easter egg: level with tetris block
 - [ ] Ladders

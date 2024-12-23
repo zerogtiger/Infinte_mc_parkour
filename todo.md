@@ -6,12 +6,12 @@
     - [ ] Tweak jump distance + height
     - [ ] Crouch walking (stop player movement over ledge)
 - [ ] Parkour map generation
-    - [ ] Algorithm for jump-able gaps
-    - [ ] Floating blocks
+    - [ ] Algorithm for jump gaps generation
+    - [ ] Floating blocks (parkour path)
     - [ ] Surroundings fog
 - [ ] Death detection
 - [ ] Menu items
-- [ ] Immediately enter game
+- [ ] Immediately enter game on load
 
 ## Enhancements
 - [ ] Biomes 

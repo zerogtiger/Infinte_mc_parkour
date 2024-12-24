@@ -126,16 +126,16 @@ export default class Control {
   }
   setMovementHandler = (e: KeyboardEvent) => {
     if (e.repeat) {
-      // if (e.key == 'w' || e.key == 'W'){
-      //   if (e.ctrlKey){
-      //     this.player.setMode(Mode.sprinting)
-      //     this.camera.fov += 20
-      //     this.camera.updateProjectionMatrix()
-      //     console.log('SPRINTING2')
-      //   }
-      //   this.downKeys.w = true
-      //   this.velocity.x = this.player.speed
-      // }
+      if (this.player.mode != Mode.sprinting && (e.key == 'w' || e.key == 'W')){
+        if (e.ctrlKey){
+          this.player.setMode(Mode.sprinting)
+          this.updateFOV(this.camera.fov + 20)
+          this.camera.updateProjectionMatrix()
+          console.log('SPRINTING2')
+        }
+        this.downKeys.w = true
+        this.velocity.x = this.player.speed
+      }
       return
     }
 

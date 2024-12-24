@@ -6,6 +6,7 @@ import Noise from './noise'
 
 import Generate from './worker/generate?worker'
 import { CustomBlending } from 'three'
+import Parkour from './parkour'
 
 export enum BlockType {
   grass = 0,
@@ -45,8 +46,6 @@ export default class Terrain {
       this.idMap = msg.data.idMap
       this.blocksCount = msg.data.blocksCount
 
-      // console.log(this.customBlocks);
-
       for (let i = 0; i < msg.data.arrays.length; i++) {
         this.blocks[i].instanceMatrix = new THREE.InstancedBufferAttribute(
           (this.blocks[i].instanceMatrix.array = msg.data.arrays[i]),
@@ -70,6 +69,7 @@ export default class Terrain {
   chunk = new THREE.Vector2(0, 0)
   previousChunk = new THREE.Vector2(0, 0)
   noise = new Noise()
+  parkour = new Parkour(this.noise, 8, 8);
 
   // materials
   materials = new Materials()
@@ -99,8 +99,6 @@ export default class Terrain {
 
   idMap = new Map<string, number>()
   generateWorker = new Generate()
-
-  lastHeight = -1;
 
   // cloud
   cloud = new THREE.InstancedMesh(
@@ -147,15 +145,19 @@ export default class Terrain {
     this.blocksCount = new Array(this.materialType.length).fill(0)
   }
 
+  resetCustomBlocks = () => {
+
+  }
+
   // resetCustomBlocks = () => {
-  //   //   for (var x = -5; x < 5; ++x) {
-  //   //     for (var z = -5; z < 5; ++z) {
-  //   //       const yOffset = Math.floor(
-  //   //         this.noise.get(x / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
-  //   //       )
-  //   //       this.customBlocks.push(new Block(x, 30 + yOffset + 3, z, BlockType.diamond, true));
-  //   //     }
-  //   //   }
+  //     for (var x = -5; x < 5; ++x) {
+  //       for (var z = -5; z < 5; ++z) {
+  //         const yOffset = Math.floor(
+  //           this.noise.get(x / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
+  //         )
+  //         this.customBlocks.push(new Block(x, 30 + yOffset + 3, z, BlockType.diamond, true));
+  //       }
+  //     }
   // }
 
   resetBlocks = () => {
@@ -182,28 +184,34 @@ export default class Terrain {
         z < this.chunkSize * this.distance + this.chunkSize + this.chunkSize * this.chunk.y;
         z++
       ) {
-        if (x % 3 == 0 && z == 0) {
-          const y = 30
-          const yOffset = Math.floor(
-            this.noise.get(x / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
-          )
-
-          this.customBlocks.push(new Block(x, y + yOffset + 3, z, BlockType.diamond, true));
-
-          const nextYOffset = Math.floor(
-            this.noise.get((x + 3) / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
-          )
-          if (nextYOffset - yOffset  >= 2) {
-            const yo1 = Math.floor(
-              this.noise.get((x + 1) / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
-            )
-            const yo2 = Math.floor(
-              this.noise.get((x + 2) / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
-            )
-            this.customBlocks.push(new Block(x + 1, y + yo1 + 3, z, BlockType.diamond, true));
-            this.customBlocks.push(new Block(x + 2, y + yo2 + 3, z, BlockType.diamond, true));
-          }
+          // console.log(this.parkour.get(x, z));
+        let res = this.parkour.get(x, z);
+        if (res != -1) {
+          this.customBlocks.push(new Block(x, res, z, BlockType.diamond, true));
+          console.log(this.customBlocks);
         }
+        // if (x % 3 == 0 && z == 0) {
+        //   const y = 30
+        //   const yOffset = Math.floor(
+        //     this.noise.get(x / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
+        //   )
+        //
+        //   this.customBlocks.push(new Block(x, y + yOffset + 3, z, BlockType.diamond, true));
+        //
+        //   const nextYOffset = Math.floor(
+        //     this.noise.get((x + 3) / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
+        //   )
+        //   if (nextYOffset - yOffset >= 2) {
+        //     const yo1 = Math.floor(
+        //       this.noise.get((x + 1) / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
+        //     )
+        //     const yo2 = Math.floor(
+        //       this.noise.get((x + 2) / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
+        //     )
+        //     this.customBlocks.push(new Block(x + 1, y + yo1 + 3, z, BlockType.diamond, true));
+        //     this.customBlocks.push(new Block(x + 2, y + yo2 + 3, z, BlockType.diamond, true));
+        //   }
+        // }
 
       }
     }

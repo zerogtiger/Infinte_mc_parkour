@@ -224,9 +224,16 @@ export default class Control {
           this.velocity.y -= this.player.speed
         }
         break
-        // case 'Control':
-        //   this.downKeys.ctrl = true
-        //   break
+        case 'Control':
+          if (!this.frontCollide && this.player.mode == Mode.walking){
+            this.player.setMode(Mode.sprinting)
+            this.updateFOV(this.camera.fov + 20)
+            this.camera.updateProjectionMatrix()
+          }
+          this.downKeys.w = true
+          this.velocity.x = this.player.speed
+          console.log("CTRL")
+          break
       default:
         break
     }
@@ -303,7 +310,7 @@ export default class Control {
     }
   }
 
-  updateFOV(target){
+  updateFOV(target: number){
     const camera = this.camera
     const tweenData = {fov: camera.fov}
     const tween = new Tween(tweenData)

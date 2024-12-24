@@ -20,6 +20,7 @@ export default class Parkour {
   constructor(noise: Noise, start_x: number, start_z: number) {
     this.noise = noise;
     this.lastPosGen = { x: start_x, y: this.getY(start_x, start_z) + 3, z: start_z }
+    this.mapOfCoords.set(`${this.lastPosGen.x},${this.lastPosGen.z}`, this.getY(this.lastPosGen.x, this.lastPosGen.z) + 3)
   }
 
   getY = (x: number, z: number) => {
@@ -41,7 +42,7 @@ export default class Parkour {
           this.mapOfCoords.set(`${this.lastPosGen.x + i},${this.lastPosGen.z}`, this.getY(this.lastPosGen.x + i, this.lastPosGen.z) + 3)
         }
       }
-      console.log(this.lastPosGen.x + gap);
+      // console.log(this.lastPosGen.x + gap);
       this.mapOfCoords.set(`${this.lastPosGen.x + gap},${this.lastPosGen.z}`, this.getY(this.lastPosGen.x + gap, this.lastPosGen.z) + 3)
       this.lastPosGen = { x: this.lastPosGen.x + gap, y: this.getY(this.lastPosGen.x + gap, this.lastPosGen.z) + 3, z: this.lastPosGen.z }
     }

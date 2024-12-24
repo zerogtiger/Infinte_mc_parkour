@@ -5,6 +5,7 @@ import Highlight from './highlight'
 import Noise from './noise'
 
 import Generate from './worker/generate?worker'
+import { CustomBlending } from 'three'
 
 export enum BlockType {
   grass = 0,
@@ -20,6 +21,7 @@ export enum BlockType {
   glass = 10,
   bedrock = 11
 }
+
 export default class Terrain {
   constructor(scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
     this.scene = scene
@@ -28,6 +30,8 @@ export default class Terrain {
       (this.distance * this.chunkSize * 2 + this.chunkSize) ** 2 + 500
     this.highlight = new Highlight(scene, camera, this)
     this.scene.add(this.cloud)
+
+    // console.log(this.customBlocks);
 
     // generate worker callback handler
     this.generateWorker.onmessage = (
@@ -40,6 +44,8 @@ export default class Terrain {
       this.resetBlocks()
       this.idMap = msg.data.idMap
       this.blocksCount = msg.data.blocksCount
+
+      // console.log(this.customBlocks);
 
       for (let i = 0; i < msg.data.arrays.length; i++) {
         this.blocks[i].instanceMatrix = new THREE.InstancedBufferAttribute(
@@ -87,6 +93,7 @@ export default class Terrain {
   blocksCount: number[] = []
   blocksFactor = [1, 0.2, 0.1, 0.7, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 
+  // customBlocks = [ new Block(9, 30, 9, BlockType.diamond, true) ]
   customBlocks: Block[] = []
   highlight: Highlight
 
@@ -138,6 +145,17 @@ export default class Terrain {
     this.blocksCount = new Array(this.materialType.length).fill(0)
   }
 
+  // resetCustomBlocks = () => {
+  //   //   for (var x = -5; x < 5; ++x) {
+  //   //     for (var z = -5; z < 5; ++z) {
+  //   //       const yOffset = Math.floor(
+  //   //         this.noise.get(x / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
+  //   //       )
+  //   //       this.customBlocks.push(new Block(x, 30 + yOffset + 3, z, BlockType.diamond, true));
+  //   //     }
+  //   //   }
+  // }
+
   resetBlocks = () => {
     // reest count and instance matrix
     for (let i = 0; i < this.blocks.length; i++) {
@@ -150,6 +168,27 @@ export default class Terrain {
 
   generate = () => {
     this.blocksCount = new Array(this.blocks.length).fill(0)
+
+    for (
+      let x = -this.chunkSize * this.distance + this.chunkSize * this.chunk.x;
+      x < this.chunkSize * this.distance + this.chunkSize + this.chunkSize * this.chunk.x;
+      x++
+    ) {
+      for (
+        let z = -this.chunkSize * this.distance + this.chunkSize * this.chunk.y;
+        z < this.chunkSize * this.distance + this.chunkSize + this.chunkSize * this.chunk.y;
+        z++
+      ) {
+        const y = 30
+        const yOffset = Math.floor(
+          this.noise.get(x / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
+        )
+        if (x % 4 == 0 && z == 0) {
+          this.customBlocks.push(new Block(x, y + yOffset + 3, z, BlockType.diamond, true));
+        }
+      }
+    }
+
     // post work to generate worker
     this.generateWorker.postMessage({
       distance: this.distance,
@@ -165,6 +204,15 @@ export default class Terrain {
       chunkSize: this.chunkSize
     })
 
+    // // Log after the worker has processed
+    // this.generateWorker.onmessage = (msg: MessageEvent<any>) => {
+    //   console.log("Custom Blocks after generation:", this.customBlocks); // Log here
+    //
+    //   for (const block of this.customBlocks) {
+    //     this.buildBlock(new THREE.Vector3(block.x, block.y, block.z), block.type)
+    //   }
+    // }
+
     // cloud
 
     if (this.cloudGap++ > 5) {
@@ -179,8 +227,8 @@ export default class Terrain {
           -this.chunkSize * this.distance * 3 + this.chunkSize * this.chunk.x;
         x <
         this.chunkSize * this.distance * 3 +
-          this.chunkSize +
-          this.chunkSize * this.chunk.x;
+        this.chunkSize +
+        this.chunkSize * this.chunk.x;
         x += 20
       ) {
         for (
@@ -188,8 +236,8 @@ export default class Terrain {
             -this.chunkSize * this.distance * 3 + this.chunkSize * this.chunk.y;
           z <
           this.chunkSize * this.distance * 3 +
-            this.chunkSize +
-            this.chunkSize * this.chunk.y;
+          this.chunkSize +
+          this.chunkSize * this.chunk.y;
           z += 20
         ) {
           const matrix = new THREE.Matrix4()
@@ -247,7 +295,7 @@ export default class Terrain {
     // check if it's natural terrain
     const yOffset = Math.floor(
       noise.get(position.x / noise.gap, position.z / noise.gap, noise.seed) *
-        noise.amp
+      noise.amp
     )
     if (position.y >= 30 + yOffset || position.y < 0) {
       return

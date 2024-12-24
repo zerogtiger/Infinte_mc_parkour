@@ -31,4 +31,5 @@
 - [ ] Worldwide regional leaderboard / weekly leaderboards
 - [ ] Easter egg: level with tetris block
 - [ ] Ladders
+- [ ] Audio and block sounds
 - [ ] Add lookalike water generation

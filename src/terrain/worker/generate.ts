@@ -1,4 +1,6 @@
 import * as THREE from 'three'
+import Terrain from '..'
+// import { BlockType } from '..'
 import Block from '../mesh/block'
 import Noise from '../noise'
 
@@ -55,6 +57,8 @@ onmessage = (
     chunkSize
   } = msg.data
 
+  // console.log(customBlocks);
+
   const maxCount = (distance * chunkSize * 2 + chunkSize) ** 2 + 500
 
   if (isFirstRun) {
@@ -66,7 +70,6 @@ onmessage = (
       )
       blocks.push(block)
     }
-
     isFirstRun = false
   }
 
@@ -92,6 +95,7 @@ onmessage = (
       z < chunkSize * distance + chunkSize + chunkSize * chunk.y;
       z++
     ) {
+
       const y = 30
       const yOffset = Math.floor(
         noise.get(x / noise.gap, z / noise.gap, noise.seed) * noise.amp
@@ -185,6 +189,7 @@ onmessage = (
                   y + yOffset + noise.treeHeight + j,
                   z + k
                 )
+                // console.log(z + k);
                 blocks[BlockType.leaf].setMatrixAt(
                   blocksCount[BlockType.leaf]++,
                   matrix

@@ -142,7 +142,7 @@ export default class Control {
     switch (e.key) {
       case 'w':
       case 'W':
-        if (e.ctrlKey){
+        if (e.ctrlKey && !this.frontCollide){
           this.player.setMode(Mode.sprinting)
           this.updateFOV(this.camera.fov + 20)
           this.camera.updateProjectionMatrix()
@@ -225,13 +225,12 @@ export default class Control {
         }
         break
         case 'Control':
-          if (!this.frontCollide && this.player.mode == Mode.walking){
+          if (!this.frontCollide && this.player.mode == Mode.walking && this.velocity.x != 0){
             this.player.setMode(Mode.sprinting)
             this.updateFOV(this.camera.fov + 20)
             this.camera.updateProjectionMatrix()
+            this.velocity.x = this.player.speed
           }
-          this.downKeys.w = true
-          this.velocity.x = this.player.speed
           console.log("CTRL")
           break
       default:

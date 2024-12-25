@@ -78,8 +78,6 @@ export default class Parkour {
           break;
       }
       this.currDirCount--;
-      // if (this.currDirection == direction.forward) {
-      // let gap = getRandom(3, 4);
 
       // if jump is impossible, fill in blocks
       if (this.getY(this.lastPosGen.x + deltaX, this.lastPosGen.z + deltaZ) + 3 - this.lastPosGen.y >= 2) {

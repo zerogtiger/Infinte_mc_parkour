@@ -1,7 +1,7 @@
 import Noise from "../noise";
 
 enum direction {
-  left_small, left_large, left, right_small, right_large, right, forward
+  left_small, left_large, right_small, right_large, forward
 }
 
 const getRandom = (min: number, max: number) => {
@@ -32,7 +32,28 @@ export default class Parkour {
   get = (x: number, z: number) => {
     // requires further generation
     while (this.lastPosGen.x <= x) {
-      // if (this.currDirCount > 0) { // continue to proceed in current direction
+      // if (this.currDirCount < 0) {
+      //   const newD = getRandom(0, 4);
+      //   switch (newD) {
+      //     case 0:
+      //       this.currDirection = direction.left_small;
+      //       break;
+      //     case 1:
+      //       this.currDirection = direction.left_large;
+      //       break;
+      //     case 2:
+      //       this.currDirection = direction.right_small;
+      //       break;
+      //     case 3:
+      //       this.currDirection = direction.right_large;
+      //       break;
+      //     case 4:
+      //       this.currDirection = direction.forward;
+      //       break;
+      //   }
+      //   this.currDirCount = getRandom(10, 20);
+      // }
+      // continue to proceed in current direction
       // if (this.currDirection == direction.forward) {
       let gap = getRandom(3, 4);
 
@@ -42,6 +63,9 @@ export default class Parkour {
           this.mapOfCoords.set(`${this.lastPosGen.x + i},${this.lastPosGen.z}`, this.getY(this.lastPosGen.x + i, this.lastPosGen.z) + 3)
         }
       }
+      else if (gap == 4 && this.getY(this.lastPosGen.x + gap, this.lastPosGen.z) + 3 - this.lastPosGen.y >= 1) {
+        this.mapOfCoords.set(`${this.lastPosGen.x + 3},${this.lastPosGen.z}`, this.getY(this.lastPosGen.x + 3, this.lastPosGen.z) + 3)
+      }
       // console.log(this.lastPosGen.x + gap);
       this.mapOfCoords.set(`${this.lastPosGen.x + gap},${this.lastPosGen.z}`, this.getY(this.lastPosGen.x + gap, this.lastPosGen.z) + 3)
       this.lastPosGen = { x: this.lastPosGen.x + gap, y: this.getY(this.lastPosGen.x + gap, this.lastPosGen.z) + 3, z: this.lastPosGen.z }
@@ -49,7 +73,7 @@ export default class Parkour {
     if (this.mapOfCoords.has(`${x},${z}`)) {
       console.log(this.mapOfCoords);
       let ret: number = this.mapOfCoords.get(`${x},${z}`)!
-      // this.mapOfCoords.delete(`${x},${z}`);
+      this.mapOfCoords.delete(`${x},${z}`);
       return ret;
     }
     return -1;

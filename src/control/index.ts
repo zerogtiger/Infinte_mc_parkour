@@ -660,9 +660,6 @@ export default class Control {
       case Side.down:
         this.raycasterDown.ray.origin = position
         this.raycasterDown.far = far
-        // if (this.isJumping){
-        //   this.raycasterDown.far = far * 2
-        // }
         break
       case Side.up:
         this.raycasterUp.ray.origin = new THREE.Vector3().copy(position)

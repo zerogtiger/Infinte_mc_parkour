@@ -137,7 +137,7 @@ export default class Control {
           this.player.setMode(Mode.sprinting)
           this.updateFOV(this.camera.fov + 20)
           this.camera.updateProjectionMatrix()
-          console.log('SPRINTING2')
+          console.log('w then ctrl sprint')
         }
         this.downKeys.w = true
         this.velocity.x = this.player.speed
@@ -174,13 +174,13 @@ export default class Control {
           this.player.setMode(Mode.sprinting);
           this.updateFOV(this.camera.fov + 20);
           this.camera.updateProjectionMatrix();
-          console.log('Double-tap sprinting!');
+          console.log('sprinting w/ 2x w');
         }
         else if (e.ctrlKey && !this.isDoubleTap && !this.frontCollide){
           this.player.setMode(Mode.sprinting)
           this.updateFOV(this.camera.fov + 20)
           this.camera.updateProjectionMatrix()
-          console.log("sprint")
+          console.log("ctrl then w sprint")
         }
         this.downKeys.w = true
         this.velocity.x = this.player.speed

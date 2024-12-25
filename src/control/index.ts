@@ -61,7 +61,7 @@ export default class Control {
 
   // double tap 'w' properties
   lastWPressTime: number = 0;
-  doubleTapThreshold: number = 500; // milliseconds
+  doubleTapThreshold: number = 300; // milliseconds
   isDoubleTap: boolean = false;
 
   raycasterDown = new THREE.Raycaster()
@@ -132,7 +132,7 @@ export default class Control {
   setMovementHandler = (e: KeyboardEvent) => {
 
     if (e.repeat) {
-      if (this.player.mode != Mode.sprinting && (e.key == 'w' || e.key == 'W') && !this.frontCollide){
+      if (this.player.mode === Mode.walking && (e.key == 'w' || e.key == 'W') && !this.frontCollide){
         if (e.ctrlKey){
           this.player.setMode(Mode.sprinting)
           this.updateFOV(this.camera.fov + 20)
@@ -146,6 +146,17 @@ export default class Control {
     }
 
     switch (e.key) {
+      case 'q':
+        if (this.player.mode != Mode.flying) {
+          this.player.setMode(Mode.flying)
+        } else {
+          this.player.setMode(Mode.walking)
+        }
+        this.velocity.y = 0
+        this.velocity.x = 0
+        this.velocity.z = 0
+        break
+
       case 'w':
       case 'W':
         const currentTime = Date.now();
@@ -205,7 +216,7 @@ export default class Control {
               this.far = this.player.body.height
             }, 300)
           }
-        } else { // sprinting
+        } else if (this.player.mode === Mode.sprinting) { // sprinting
           // jump (for sprint)
           if (!this.isJumping) {
             this.velocity.y = 8
@@ -216,6 +227,8 @@ export default class Control {
               this.far = this.player.body.height
             }, 300)
           }
+        } else { // flying
+          this.velocity.y += this.player.speed
         }
         if ((this.player.mode === Mode.walking||this.player.mode === Mode.sprinting) && !this.spaceHolding) {
           this.spaceHolding = true
@@ -226,7 +239,12 @@ export default class Control {
 
         break
       case 'Shift':
-        if (this.player.mode === Mode.walking) {
+        if (this.player.mode === Mode.walking || this.player.mode === Mode.sprinting) {
+          if (this.player.mode === Mode.sprinting){
+            this.updateFOV(this.camera.fov - 20)
+            this.camera.updateProjectionMatrix()
+            this.player.setMode(Mode.walking)
+          }
           if (!this.isJumping) {
             this.player.setMode(Mode.sneaking)
             if (this.downKeys.w) {
@@ -778,461 +796,470 @@ export default class Control {
   update = () => {
     this.p1 = performance.now()
     const delta = (this.p1 - this.p2) / 1000
-    // normal mode
-    this.collideCheckAll(
-        this.camera.position,
-        this.terrain.noise,
-        this.terrain.customBlocks,
-        this.far - this.velocity.y * delta
-    )
-
-    // gravity
-    if (Math.abs(this.velocity.y) < this.player.falling) {
-      this.velocity.y -= 25 * delta
-    }
-
-    // up collide handler
-    if (this.upCollide) {
-      this.velocity.y = -225 * delta
-      this.far = this.player.body.height
-    }
-
-    // down collide and jump handler
-    if (this.downCollide && !this.isJumping) {
-      this.velocity.y = 0
-    } else if (this.downCollide && this.isJumping) {
-      this.isJumping = false
-    }
-
-    // side collide handler
-    let vector = new THREE.Vector3(0, 0, -1).applyQuaternion(
-        this.camera.quaternion
-    )
-    let direction = Math.atan2(vector.x, vector.z)
     if (
-        this.frontCollide ||
-        this.backCollide ||
-        this.leftCollide ||
-        this.rightCollide
+        // dev mode
+        this.player.mode === Mode.flying
     ) {
-      // collide front (positive x)
-      if (this.frontCollide) {
-        // camera front
-        if (direction < Math.PI && direction > 0 && this.velocity.x > 0) {
-          if (
-              (!this.leftCollide && direction > Math.PI / 2) ||
-              (!this.rightCollide && direction < Math.PI / 2)
-          ) {
-            this.moveZ(Math.PI / 2 - direction, delta)
-          }
-        } else if (
-            !this.leftCollide &&
-            !this.rightCollide &&
-            this.velocity.x > 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        }
-
-        // camera back
-        if (direction < 0 && direction > -Math.PI && this.velocity.x < 0) {
-          if (
-              (!this.leftCollide && direction > -Math.PI / 2) ||
-              (!this.rightCollide && direction < -Math.PI / 2)
-          ) {
-            this.moveZ(-Math.PI / 2 - direction, delta)
-          }
-        } else if (
-            !this.leftCollide &&
-            !this.rightCollide &&
-            this.velocity.x < 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        }
-
-        // camera left
-        if (
-            direction < Math.PI / 2 &&
-            direction > -Math.PI / 2 &&
-            this.velocity.z < 0
-        ) {
-          if (
-              (!this.rightCollide && direction < 0) ||
-              (!this.leftCollide && direction > 0)
-          ) {
-            this.moveZ(-direction, delta)
-          }
-        } else if (
-            !this.leftCollide &&
-            !this.rightCollide &&
-            this.velocity.z < 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        }
-
-        // camera right
-        if (
-            (direction < -Math.PI / 2 || direction > Math.PI / 2) &&
-            this.velocity.z > 0
-        ) {
-          if (!this.rightCollide && direction > 0) {
-            this.moveZ(Math.PI - direction, delta)
-          }
-          if (!this.leftCollide && direction < 0) {
-            this.moveZ(-Math.PI - direction, delta)
-          }
-        } else if (
-            !this.leftCollide &&
-            !this.rightCollide &&
-            this.velocity.z > 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        }
-      }
-
-      // collide back (negative x)
-      if (this.backCollide) {
-        // camera front
-        if (direction < 0 && direction > -Math.PI && this.velocity.x > 0) {
-          if (
-              (!this.leftCollide && direction < -Math.PI / 2) ||
-              (!this.rightCollide && direction > -Math.PI / 2)
-          ) {
-            this.moveZ(Math.PI / 2 + direction, delta)
-          }
-        } else if (
-            !this.leftCollide &&
-            !this.rightCollide &&
-            this.velocity.x > 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        }
-
-        // camera back
-        if (direction < Math.PI && direction > 0 && this.velocity.x < 0) {
-          if (
-              (!this.leftCollide && direction < Math.PI / 2) ||
-              (!this.rightCollide && direction > Math.PI / 2)
-          ) {
-            this.moveZ(direction - Math.PI / 2, delta)
-          }
-        } else if (
-            !this.leftCollide &&
-            !this.rightCollide &&
-            this.velocity.x < 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        }
-
-        // camera left
-        if (
-            (direction < -Math.PI / 2 || direction > Math.PI / 2) &&
-            this.velocity.z < 0
-        ) {
-          if (!this.leftCollide && direction > 0) {
-            this.moveZ(-Math.PI + direction, delta)
-          }
-          if (!this.rightCollide && direction < 0) {
-            this.moveZ(Math.PI + direction, delta)
-          }
-        } else if (
-            !this.leftCollide &&
-            !this.rightCollide &&
-            this.velocity.z < 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        }
-
-        // camera right
-        if (
-            direction < Math.PI / 2 &&
-            direction > -Math.PI / 2 &&
-            this.velocity.z > 0
-        ) {
-          if (
-              (!this.leftCollide && direction < 0) ||
-              (!this.rightCollide && direction > 0)
-          ) {
-            this.moveZ(direction, delta)
-          }
-        } else if (
-            !this.leftCollide &&
-            !this.rightCollide &&
-            this.velocity.z > 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        }
-      }
-
-      // collide left (negative z)
-      if (this.leftCollide) {
-        // camera front
-        if (
-            (direction < -Math.PI / 2 || direction > Math.PI / 2) &&
-            this.velocity.x > 0
-        ) {
-          if (!this.frontCollide && direction > 0) {
-            this.moveX(Math.PI - direction, delta)
-          }
-          if (!this.backCollide && direction < 0) {
-            this.moveX(-Math.PI - direction, delta)
-          }
-        } else if (
-            !this.frontCollide &&
-            !this.backCollide &&
-            this.velocity.x > 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        } else if (
-            this.frontCollide &&
-            direction < 0 &&
-            direction > -Math.PI / 2 &&
-            this.velocity.x > 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        } else if (
-            this.backCollide &&
-            direction < Math.PI / 2 &&
-            direction > 0 &&
-            this.velocity.x > 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        }
-
-        // camera back
-        if (
-            direction < Math.PI / 2 &&
-            direction > -Math.PI / 2 &&
-            this.velocity.x < 0
-        ) {
-          if (
-              (!this.frontCollide && direction < 0) ||
-              (!this.backCollide && direction > 0)
-          ) {
-            this.moveX(-direction, delta)
-          }
-        } else if (
-            !this.frontCollide &&
-            !this.backCollide &&
-            this.velocity.x < 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        } else if (
-            this.frontCollide &&
-            direction < Math.PI &&
-            direction > Math.PI / 2 &&
-            this.velocity.x < 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        } else if (
-            this.backCollide &&
-            direction > -Math.PI &&
-            direction < -Math.PI / 2 &&
-            this.velocity.x < 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        }
-
-        // camera left
-        if (direction > 0 && direction < Math.PI && this.velocity.z < 0) {
-          if (
-              (!this.backCollide && direction > Math.PI / 2) ||
-              (!this.frontCollide && direction < Math.PI / 2)
-          ) {
-            this.moveX(Math.PI / 2 - direction, delta)
-          }
-        } else if (
-            !this.frontCollide &&
-            !this.backCollide &&
-            this.velocity.z < 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        } else if (
-            this.frontCollide &&
-            direction > -Math.PI &&
-            direction < -Math.PI / 2 &&
-            this.velocity.z < 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        } else if (
-            this.backCollide &&
-            direction > -Math.PI / 2 &&
-            direction < 0 &&
-            this.velocity.z < 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        }
-
-        // camera right
-        if (direction < 0 && direction > -Math.PI && this.velocity.z > 0) {
-          if (
-              (!this.backCollide && direction > -Math.PI / 2) ||
-              (!this.frontCollide && direction < -Math.PI / 2)
-          ) {
-            this.moveX(-Math.PI / 2 - direction, delta)
-          }
-        } else if (
-            !this.frontCollide &&
-            !this.backCollide &&
-            this.velocity.z > 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        } else if (
-            this.frontCollide &&
-            direction < Math.PI / 2 &&
-            direction > 0 &&
-            this.velocity.z > 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        } else if (
-            this.backCollide &&
-            direction < Math.PI &&
-            direction > Math.PI / 2 &&
-            this.velocity.z > 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        }
-      }
-
-      // collide right (positive z)
-      if (this.rightCollide) {
-        // camera front
-        if (
-            direction < Math.PI / 2 &&
-            direction > -Math.PI / 2 &&
-            this.velocity.x > 0
-        ) {
-          if (
-              (!this.backCollide && direction < 0) ||
-              (!this.frontCollide && direction > 0)
-          ) {
-            this.moveX(direction, delta)
-          }
-        } else if (
-            !this.frontCollide &&
-            !this.backCollide &&
-            this.velocity.x > 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        } else if (
-            this.frontCollide &&
-            direction < -Math.PI / 2 &&
-            direction > -Math.PI &&
-            this.velocity.x > 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        } else if (
-            this.backCollide &&
-            direction < Math.PI &&
-            direction > Math.PI / 2 &&
-            this.velocity.x > 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        }
-
-        // camera back
-        if (
-            (direction < -Math.PI / 2 || direction > Math.PI / 2) &&
-            this.velocity.x < 0
-        ) {
-          if (!this.backCollide && direction > 0) {
-            this.moveX(-Math.PI + direction, delta)
-          }
-          if (!this.frontCollide && direction < 0) {
-            this.moveX(Math.PI + direction, delta)
-          }
-        } else if (
-            !this.frontCollide &&
-            !this.backCollide &&
-            this.velocity.x < 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        } else if (
-            this.frontCollide &&
-            direction < Math.PI / 2 &&
-            direction > 0 &&
-            this.velocity.x < 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        } else if (
-            this.backCollide &&
-            direction < 0 &&
-            direction > -Math.PI / 2 &&
-            this.velocity.x < 0
-        ) {
-          this.control.moveForward(this.velocity.x * delta)
-        }
-
-        // camera left
-        if (direction < 0 && direction > -Math.PI && this.velocity.z < 0) {
-          if (
-              (!this.frontCollide && direction > -Math.PI / 2) ||
-              (!this.backCollide && direction < -Math.PI / 2)
-          ) {
-            this.moveX(Math.PI / 2 + direction, delta)
-          }
-        } else if (
-            !this.frontCollide &&
-            !this.backCollide &&
-            this.velocity.z < 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        } else if (
-            this.frontCollide &&
-            direction > Math.PI / 2 &&
-            direction < Math.PI &&
-            this.velocity.z < 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        } else if (
-            this.backCollide &&
-            direction > 0 &&
-            direction < Math.PI / 2 &&
-            this.velocity.z < 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        }
-
-        // camera right
-        if (direction > 0 && direction < Math.PI && this.velocity.z > 0) {
-          if (
-              (!this.frontCollide && direction > Math.PI / 2) ||
-              (!this.backCollide && direction < Math.PI / 2)
-          ) {
-            this.moveX(direction - Math.PI / 2, delta)
-          }
-        } else if (
-            !this.frontCollide &&
-            !this.backCollide &&
-            this.velocity.z > 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        } else if (
-            this.frontCollide &&
-            direction > -Math.PI / 2 &&
-            direction < 0 &&
-            this.velocity.z > 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        } else if (
-            this.backCollide &&
-            direction > -Math.PI &&
-            direction < -Math.PI / 2 &&
-            this.velocity.z > 0
-        ) {
-          this.control.moveRight(this.velocity.z * delta)
-        }
-      }
-    } else {
-      // no collide
       this.control.moveForward(this.velocity.x * delta)
       this.control.moveRight(this.velocity.z * delta)
-    }
+      this.camera.position.y += this.velocity.y * delta
+    } else {
+      // normal mode
+      this.collideCheckAll(
+          this.camera.position,
+          this.terrain.noise,
+          this.terrain.customBlocks,
+          this.far - this.velocity.y * delta
+      )
 
-    this.camera.position.y += this.velocity.y * delta
+      // gravity
+      if (Math.abs(this.velocity.y) < this.player.falling) {
+        this.velocity.y -= 25 * delta
+      }
 
-    // catching net
-    if (this.camera.position.y < -100) {
-      this.camera.position.y = 60
+      // up collide handler
+      if (this.upCollide) {
+        this.velocity.y = -225 * delta
+        this.far = this.player.body.height
+      }
+
+      // down collide and jump handler
+      if (this.downCollide && !this.isJumping) {
+        this.velocity.y = 0
+      } else if (this.downCollide && this.isJumping) {
+        this.isJumping = false
+      }
+
+      // side collide handler
+      let vector = new THREE.Vector3(0, 0, -1).applyQuaternion(
+          this.camera.quaternion
+      )
+      let direction = Math.atan2(vector.x, vector.z)
+      if (
+          this.frontCollide ||
+          this.backCollide ||
+          this.leftCollide ||
+          this.rightCollide
+      ) {
+        // collide front (positive x)
+        if (this.frontCollide) {
+          // camera front
+          if (direction < Math.PI && direction > 0 && this.velocity.x > 0) {
+            if (
+                (!this.leftCollide && direction > Math.PI / 2) ||
+                (!this.rightCollide && direction < Math.PI / 2)
+            ) {
+              this.moveZ(Math.PI / 2 - direction, delta)
+            }
+          } else if (
+              !this.leftCollide &&
+              !this.rightCollide &&
+              this.velocity.x > 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          }
+
+          // camera back
+          if (direction < 0 && direction > -Math.PI && this.velocity.x < 0) {
+            if (
+                (!this.leftCollide && direction > -Math.PI / 2) ||
+                (!this.rightCollide && direction < -Math.PI / 2)
+            ) {
+              this.moveZ(-Math.PI / 2 - direction, delta)
+            }
+          } else if (
+              !this.leftCollide &&
+              !this.rightCollide &&
+              this.velocity.x < 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          }
+
+          // camera left
+          if (
+              direction < Math.PI / 2 &&
+              direction > -Math.PI / 2 &&
+              this.velocity.z < 0
+          ) {
+            if (
+                (!this.rightCollide && direction < 0) ||
+                (!this.leftCollide && direction > 0)
+            ) {
+              this.moveZ(-direction, delta)
+            }
+          } else if (
+              !this.leftCollide &&
+              !this.rightCollide &&
+              this.velocity.z < 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          }
+
+          // camera right
+          if (
+              (direction < -Math.PI / 2 || direction > Math.PI / 2) &&
+              this.velocity.z > 0
+          ) {
+            if (!this.rightCollide && direction > 0) {
+              this.moveZ(Math.PI - direction, delta)
+            }
+            if (!this.leftCollide && direction < 0) {
+              this.moveZ(-Math.PI - direction, delta)
+            }
+          } else if (
+              !this.leftCollide &&
+              !this.rightCollide &&
+              this.velocity.z > 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          }
+        }
+
+        // collide back (negative x)
+        if (this.backCollide) {
+          // camera front
+          if (direction < 0 && direction > -Math.PI && this.velocity.x > 0) {
+            if (
+                (!this.leftCollide && direction < -Math.PI / 2) ||
+                (!this.rightCollide && direction > -Math.PI / 2)
+            ) {
+              this.moveZ(Math.PI / 2 + direction, delta)
+            }
+          } else if (
+              !this.leftCollide &&
+              !this.rightCollide &&
+              this.velocity.x > 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          }
+
+          // camera back
+          if (direction < Math.PI && direction > 0 && this.velocity.x < 0) {
+            if (
+                (!this.leftCollide && direction < Math.PI / 2) ||
+                (!this.rightCollide && direction > Math.PI / 2)
+            ) {
+              this.moveZ(direction - Math.PI / 2, delta)
+            }
+          } else if (
+              !this.leftCollide &&
+              !this.rightCollide &&
+              this.velocity.x < 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          }
+
+          // camera left
+          if (
+              (direction < -Math.PI / 2 || direction > Math.PI / 2) &&
+              this.velocity.z < 0
+          ) {
+            if (!this.leftCollide && direction > 0) {
+              this.moveZ(-Math.PI + direction, delta)
+            }
+            if (!this.rightCollide && direction < 0) {
+              this.moveZ(Math.PI + direction, delta)
+            }
+          } else if (
+              !this.leftCollide &&
+              !this.rightCollide &&
+              this.velocity.z < 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          }
+
+          // camera right
+          if (
+              direction < Math.PI / 2 &&
+              direction > -Math.PI / 2 &&
+              this.velocity.z > 0
+          ) {
+            if (
+                (!this.leftCollide && direction < 0) ||
+                (!this.rightCollide && direction > 0)
+            ) {
+              this.moveZ(direction, delta)
+            }
+          } else if (
+              !this.leftCollide &&
+              !this.rightCollide &&
+              this.velocity.z > 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          }
+        }
+
+        // collide left (negative z)
+        if (this.leftCollide) {
+          // camera front
+          if (
+              (direction < -Math.PI / 2 || direction > Math.PI / 2) &&
+              this.velocity.x > 0
+          ) {
+            if (!this.frontCollide && direction > 0) {
+              this.moveX(Math.PI - direction, delta)
+            }
+            if (!this.backCollide && direction < 0) {
+              this.moveX(-Math.PI - direction, delta)
+            }
+          } else if (
+              !this.frontCollide &&
+              !this.backCollide &&
+              this.velocity.x > 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          } else if (
+              this.frontCollide &&
+              direction < 0 &&
+              direction > -Math.PI / 2 &&
+              this.velocity.x > 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          } else if (
+              this.backCollide &&
+              direction < Math.PI / 2 &&
+              direction > 0 &&
+              this.velocity.x > 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          }
+
+          // camera back
+          if (
+              direction < Math.PI / 2 &&
+              direction > -Math.PI / 2 &&
+              this.velocity.x < 0
+          ) {
+            if (
+                (!this.frontCollide && direction < 0) ||
+                (!this.backCollide && direction > 0)
+            ) {
+              this.moveX(-direction, delta)
+            }
+          } else if (
+              !this.frontCollide &&
+              !this.backCollide &&
+              this.velocity.x < 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          } else if (
+              this.frontCollide &&
+              direction < Math.PI &&
+              direction > Math.PI / 2 &&
+              this.velocity.x < 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          } else if (
+              this.backCollide &&
+              direction > -Math.PI &&
+              direction < -Math.PI / 2 &&
+              this.velocity.x < 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          }
+
+          // camera left
+          if (direction > 0 && direction < Math.PI && this.velocity.z < 0) {
+            if (
+                (!this.backCollide && direction > Math.PI / 2) ||
+                (!this.frontCollide && direction < Math.PI / 2)
+            ) {
+              this.moveX(Math.PI / 2 - direction, delta)
+            }
+          } else if (
+              !this.frontCollide &&
+              !this.backCollide &&
+              this.velocity.z < 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          } else if (
+              this.frontCollide &&
+              direction > -Math.PI &&
+              direction < -Math.PI / 2 &&
+              this.velocity.z < 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          } else if (
+              this.backCollide &&
+              direction > -Math.PI / 2 &&
+              direction < 0 &&
+              this.velocity.z < 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          }
+
+          // camera right
+          if (direction < 0 && direction > -Math.PI && this.velocity.z > 0) {
+            if (
+                (!this.backCollide && direction > -Math.PI / 2) ||
+                (!this.frontCollide && direction < -Math.PI / 2)
+            ) {
+              this.moveX(-Math.PI / 2 - direction, delta)
+            }
+          } else if (
+              !this.frontCollide &&
+              !this.backCollide &&
+              this.velocity.z > 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          } else if (
+              this.frontCollide &&
+              direction < Math.PI / 2 &&
+              direction > 0 &&
+              this.velocity.z > 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          } else if (
+              this.backCollide &&
+              direction < Math.PI &&
+              direction > Math.PI / 2 &&
+              this.velocity.z > 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          }
+        }
+
+        // collide right (positive z)
+        if (this.rightCollide) {
+          // camera front
+          if (
+              direction < Math.PI / 2 &&
+              direction > -Math.PI / 2 &&
+              this.velocity.x > 0
+          ) {
+            if (
+                (!this.backCollide && direction < 0) ||
+                (!this.frontCollide && direction > 0)
+            ) {
+              this.moveX(direction, delta)
+            }
+          } else if (
+              !this.frontCollide &&
+              !this.backCollide &&
+              this.velocity.x > 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          } else if (
+              this.frontCollide &&
+              direction < -Math.PI / 2 &&
+              direction > -Math.PI &&
+              this.velocity.x > 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          } else if (
+              this.backCollide &&
+              direction < Math.PI &&
+              direction > Math.PI / 2 &&
+              this.velocity.x > 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          }
+
+          // camera back
+          if (
+              (direction < -Math.PI / 2 || direction > Math.PI / 2) &&
+              this.velocity.x < 0
+          ) {
+            if (!this.backCollide && direction > 0) {
+              this.moveX(-Math.PI + direction, delta)
+            }
+            if (!this.frontCollide && direction < 0) {
+              this.moveX(Math.PI + direction, delta)
+            }
+          } else if (
+              !this.frontCollide &&
+              !this.backCollide &&
+              this.velocity.x < 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          } else if (
+              this.frontCollide &&
+              direction < Math.PI / 2 &&
+              direction > 0 &&
+              this.velocity.x < 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          } else if (
+              this.backCollide &&
+              direction < 0 &&
+              direction > -Math.PI / 2 &&
+              this.velocity.x < 0
+          ) {
+            this.control.moveForward(this.velocity.x * delta)
+          }
+
+          // camera left
+          if (direction < 0 && direction > -Math.PI && this.velocity.z < 0) {
+            if (
+                (!this.frontCollide && direction > -Math.PI / 2) ||
+                (!this.backCollide && direction < -Math.PI / 2)
+            ) {
+              this.moveX(Math.PI / 2 + direction, delta)
+            }
+          } else if (
+              !this.frontCollide &&
+              !this.backCollide &&
+              this.velocity.z < 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          } else if (
+              this.frontCollide &&
+              direction > Math.PI / 2 &&
+              direction < Math.PI &&
+              this.velocity.z < 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          } else if (
+              this.backCollide &&
+              direction > 0 &&
+              direction < Math.PI / 2 &&
+              this.velocity.z < 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          }
+
+          // camera right
+          if (direction > 0 && direction < Math.PI && this.velocity.z > 0) {
+            if (
+                (!this.frontCollide && direction > Math.PI / 2) ||
+                (!this.backCollide && direction < Math.PI / 2)
+            ) {
+              this.moveX(direction - Math.PI / 2, delta)
+            }
+          } else if (
+              !this.frontCollide &&
+              !this.backCollide &&
+              this.velocity.z > 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          } else if (
+              this.frontCollide &&
+              direction > -Math.PI / 2 &&
+              direction < 0 &&
+              this.velocity.z > 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          } else if (
+              this.backCollide &&
+              direction > -Math.PI &&
+              direction < -Math.PI / 2 &&
+              this.velocity.z > 0
+          ) {
+            this.control.moveRight(this.velocity.z * delta)
+          }
+        }
+      } else {
+        // no collide
+        this.control.moveForward(this.velocity.x * delta)
+        this.control.moveRight(this.velocity.z * delta)
+      }
+
+      this.camera.position.y += this.velocity.y * delta
+
+      // catching net
+      if (this.camera.position.y < -100) {
+        this.camera.position.y = 60
+      }
     }
     this.p2 = this.p1
   }

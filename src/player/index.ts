@@ -1,13 +1,17 @@
 export enum Mode {
   walking = 'walking',
   sprinting = 'sprinting',
-  sneaking = 'sneaking'
+  sneaking = 'sneaking',
+  flying = 'flying'
+
 }
 
 export enum Speed {
   walking = 4.317,
   sprinting = 5.612,
-  sneaking = 1.295
+  sneaking = 1.295,
+  flying = 21.78
+
 }
 export default class Player {
   mode = Mode.walking

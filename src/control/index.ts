@@ -59,6 +59,11 @@ export default class Control {
   upCollide = false
   isJumping = false
 
+  // double tap 'w' properties
+  lastWPressTime: number = 0;
+  doubleTapThreshold: number = 500; // milliseconds
+  isDoubleTap: boolean = false;
+
   raycasterDown = new THREE.Raycaster()
   raycasterUp = new THREE.Raycaster()
   raycasterFront = new THREE.Raycaster()
@@ -125,8 +130,9 @@ export default class Control {
     s: false,
   }
   setMovementHandler = (e: KeyboardEvent) => {
+
     if (e.repeat) {
-      if (this.player.mode != Mode.sprinting && (e.key == 'w' || e.key == 'W')){
+      if (this.player.mode != Mode.sprinting && (e.key == 'w' || e.key == 'W') && !this.frontCollide){
         if (e.ctrlKey){
           this.player.setMode(Mode.sprinting)
           this.updateFOV(this.camera.fov + 20)
@@ -142,7 +148,24 @@ export default class Control {
     switch (e.key) {
       case 'w':
       case 'W':
-        if (e.ctrlKey && !this.frontCollide){
+        const currentTime = Date.now();
+
+        // Check for double-tap condition
+        if (currentTime - this.lastWPressTime <= this.doubleTapThreshold) {
+          this.isDoubleTap = true;
+        } else {
+          this.isDoubleTap = false;
+        }
+
+        // Update last press time
+        this.lastWPressTime = currentTime;
+        if (this.isDoubleTap && !this.frontCollide) {
+          this.player.setMode(Mode.sprinting);
+          this.updateFOV(this.camera.fov + 20);
+          this.camera.updateProjectionMatrix();
+          console.log('Double-tap sprinting!');
+        }
+        else if (e.ctrlKey && !this.isDoubleTap && !this.frontCollide){
           this.player.setMode(Mode.sprinting)
           this.updateFOV(this.camera.fov + 20)
           this.camera.updateProjectionMatrix()
@@ -637,6 +660,9 @@ export default class Control {
       case Side.down:
         this.raycasterDown.ray.origin = position
         this.raycasterDown.far = far
+        // if (this.isJumping){
+        //   this.raycasterDown.far = far * 2
+        // }
         break
       case Side.up:
         this.raycasterUp.ray.origin = new THREE.Vector3().copy(position)

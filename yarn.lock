@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@tweenjs/tween.js@^25.0.0":
+  version "25.0.0"
+  resolved "https://registry.yarnpkg.com/@tweenjs/tween.js/-/tween.js-25.0.0.tgz#7266baebcc3affe62a3a54318a3ea82d904cd0b9"
+  integrity sha512-XKLA6syeBUaPzx4j3qwMqzzq+V4uo72BnlbOjmuljLrRqdsd3qnzvZZoxvMHZ23ndsRS4aufU6JOZYpCbU6T1A==
+
 "@types/three@^0.137.0":
   version "0.137.0"
   resolved "https://registry.yarnpkg.com/@types/three/-/three-0.137.0.tgz#6047e0658262b4de7c464a40288f9071ddd9a6d5"

@@ -37,7 +37,7 @@ export default class Terrain {
     // generate worker callback handler
     this.generateWorker.onmessage = (
       msg: MessageEvent<{
-        idMap: Map<string, number>
+        idMap: Map<string, { index: number, type: BlockType }>
         arrays: ArrayLike<number>[]
         blocksCount: number[]
       }>
@@ -97,7 +97,7 @@ export default class Terrain {
   customBlocks: Block[] = []
   highlight: Highlight
 
-  idMap = new Map<string, number>()
+  idMap = new Map<string, { index: number, type: BlockType }>()
   generateWorker = new Generate()
 
   // cloud
@@ -171,9 +171,10 @@ export default class Terrain {
   }
 
   generate = () => {
-    console.log(this.chunk.x + " | " + this.chunk.y);
+    // console.log(this.chunk.x + " | " + this.chunk.y);
     this.blocksCount = new Array(this.blocks.length).fill(0)
 
+    // console.log(this.customBlocks);
     for (
       let x = -this.chunkSize * this.distance + this.chunkSize * this.chunk.x;
       x < this.chunkSize * this.distance + this.chunkSize + this.chunkSize * this.chunk.x;
@@ -184,35 +185,15 @@ export default class Terrain {
         z < this.chunkSize * this.distance + this.chunkSize + this.chunkSize * this.chunk.y;
         z++
       ) {
-          // console.log(this.parkour.get(x, z));
+        // console.log(this.parkour.get(x, z));
         let res = this.parkour.get(x, z);
         if (res != -1) {
           this.customBlocks.push(new Block(x, res, z, BlockType.diamond, true));
-          console.log(this.customBlocks);
+          for (let i = 0; i < this.parkour.toRemove.length; ++i) {
+            this.customBlocks.push(new Block(this.parkour.toRemove[i].x, this.parkour.toRemove[i].y, this.parkour.toRemove[i].z, BlockType.tree, false));
+          }
+          this.parkour.toRemove = []
         }
-        // if (x % 3 == 0 && z == 0) {
-        //   const y = 30
-        //   const yOffset = Math.floor(
-        //     this.noise.get(x / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
-        //   )
-        //
-        //   this.customBlocks.push(new Block(x, y + yOffset + 3, z, BlockType.diamond, true));
-        //
-        //   const nextYOffset = Math.floor(
-        //     this.noise.get((x + 3) / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
-        //   )
-        //   if (nextYOffset - yOffset >= 2) {
-        //     const yo1 = Math.floor(
-        //       this.noise.get((x + 1) / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
-        //     )
-        //     const yo2 = Math.floor(
-        //       this.noise.get((x + 2) / this.noise.gap, z / this.noise.gap, this.noise.seed) * this.noise.amp
-        //     )
-        //     this.customBlocks.push(new Block(x + 1, y + yo1 + 3, z, BlockType.diamond, true));
-        //     this.customBlocks.push(new Block(x + 2, y + yo2 + 3, z, BlockType.diamond, true));
-        //   }
-        // }
-
       }
     }
 

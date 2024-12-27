@@ -141,6 +141,11 @@ export default class Control {
         }
         this.downKeys.w = true
         this.velocity.x = this.player.speed
+      } else if (e.key == 'Shift' && (this.player.mode === Mode.walking || this.player.mode === Mode.sprinting)){
+        this.jumpInterval && clearInterval(this.jumpInterval)
+        this.jumpInterval = setInterval(() => {
+          this.setMovementHandler(e)
+        }, 120)
       }
       return
     }
@@ -159,6 +164,12 @@ export default class Control {
 
       case 'w':
       case 'W':
+        if (e.shiftKey && this.spaceHolding){
+          this.jumpInterval && clearInterval(this.jumpInterval)
+          this.jumpInterval = setInterval(() => {
+            this.setMovementHandler(e)
+          }, 120)
+        }
         const currentTime = Date.now();
 
         // Check for double-tap condition
@@ -202,13 +213,11 @@ export default class Control {
         this.velocity.z = this.player.speed
         break
       case ' ':
-        if (this.player.mode === Mode.sneaking && !this.isJumping) {
-          return
-        }
+
         if (this.player.mode === Mode.walking) {
           // jump
           if (!this.isJumping) {
-            this.velocity.y = 8
+            this.velocity.y = 8*0.9
             this.isJumping = true
             this.downCollide = false
             this.far = 0
@@ -219,7 +228,17 @@ export default class Control {
         } else if (this.player.mode === Mode.sprinting) { // sprinting
           // jump (for sprint)
           if (!this.isJumping) {
-            this.velocity.y = 8
+            this.velocity.y = 8*0.98
+            this.isJumping = true
+            this.downCollide = false
+            this.far = 0
+            setTimeout(() => {
+              this.far = this.player.body.height
+            }, 300)
+          }
+        } else if (this.player.mode == Mode.sneaking){
+          if (!this.isJumping) {
+            this.velocity.y = 8 * 0.85
             this.isJumping = true
             this.downCollide = false
             this.far = 0
@@ -230,23 +249,58 @@ export default class Control {
         } else { // flying
           this.velocity.y += this.player.speed
         }
-        if ((this.player.mode === Mode.walking||this.player.mode === Mode.sprinting) && !this.spaceHolding) {
+        if ((this.player.mode === Mode.walking || this.player.mode === Mode.sprinting) && !this.spaceHolding) {
           this.spaceHolding = true
           this.jumpInterval = setInterval(() => {
             this.setMovementHandler(e)
-          }, 10)
+          }, 60)
+        } else if ((this.player.mode === Mode.sneaking) && !this.spaceHolding) {
+          this.spaceHolding = true
+          this.jumpInterval = setInterval(() => {
+            this.setMovementHandler(e)
+          }, 120)
         }
 
         break
       case 'Shift':
-        if (this.player.mode === Mode.walking || this.player.mode === Mode.sprinting) {
+        if (this.player.mode != Mode.flying) {
           if (this.player.mode === Mode.sprinting){
             this.updateFOV(this.camera.fov - 20)
             this.camera.updateProjectionMatrix()
-            this.player.setMode(Mode.walking)
-          }
-          if (!this.isJumping) {
             this.player.setMode(Mode.sneaking)
+            if (this.spaceHolding){
+              this.jumpInterval && clearInterval(this.jumpInterval)
+              this.jumpInterval = setInterval(() => {
+                this.setMovementHandler(e)
+              }, 120)
+              if (!this.isJumping) {
+                this.velocity.y = 8 * 0.85
+                this.isJumping = true
+                this.downCollide = false
+                this.far = 0
+                setTimeout(() => {
+                  this.far = this.player.body.height
+                }, 300)
+              }
+            }
+          }
+          if (this.player.mode === Mode.walking || this.player.mode === Mode.sneaking) {
+            this.player.setMode(Mode.sneaking)
+            if (this.spaceHolding){
+              this.jumpInterval && clearInterval(this.jumpInterval)
+              this.jumpInterval = setInterval(() => {
+                this.setMovementHandler(e)
+              }, 120)
+              if (!this.isJumping) {
+                this.velocity.y = 8 * 0.85
+                this.isJumping = true
+                this.downCollide = false
+                this.far = 0
+                setTimeout(() => {
+                  this.far = this.player.body.height
+                }, 300)
+              }
+            }
             if (this.downKeys.w) {
               this.velocity.x = this.player.speed
             }
@@ -259,7 +313,7 @@ export default class Control {
             if (this.downKeys.d) {
               this.velocity.z = this.player.speed
             }
-            this.camera.position.setY(this.camera.position.y - 0.2)
+            if (!this.spaceHolding) this.camera.position.setY(this.camera.position.y - 0.2)
           }
         } else {
           this.velocity.y -= this.player.speed
@@ -311,9 +365,7 @@ export default class Control {
         this.velocity.z = 0
         break
       case ' ':
-        if (this.player.mode === Mode.sneaking && !this.isJumping) {
-          return
-        }
+
         this.jumpInterval && clearInterval(this.jumpInterval)
         this.spaceHolding = false
         if (this.player.mode === Mode.walking) {
@@ -323,23 +375,22 @@ export default class Control {
         break
       case 'Shift':
         if (this.player.mode === Mode.sneaking) {
-          if (!this.isJumping) {
-            this.player.setMode(Mode.walking)
-            if (this.downKeys.w) {
-              this.velocity.x = this.player.speed
-            }
-            if (this.downKeys.s) {
-              this.velocity.x = -this.player.speed
-            }
-            if (this.downKeys.a) {
-              this.velocity.z = -this.player.speed
-            }
-            if (this.downKeys.d) {
-              this.velocity.z = this.player.speed
-            }
-            this.camera.position.setY(this.camera.position.y + 0.2)
+          this.player.setMode(Mode.walking)
+          if (this.downKeys.w) {
+            this.velocity.x = this.player.speed
           }
-        }
+          if (this.downKeys.s) {
+            this.velocity.x = -this.player.speed
+          }
+          if (this.downKeys.a) {
+            this.velocity.z = -this.player.speed
+          }
+          if (this.downKeys.d) {
+            this.velocity.z = this.player.speed
+          }
+          this.camera.position.setY(this.camera.position.y + 0.2)
+          }
+
         if (this.player.mode === Mode.walking) {
           return
         }
@@ -354,8 +405,8 @@ export default class Control {
     const camera = this.camera
     const tweenData = {fov: camera.fov}
     const tween = new Tween(tweenData)
-        .to({fov: target}, 0.1 * 1000)
-        .easing(Easing.Bounce.InOut)
+        .to({fov: target}, 0.2 * 1000)
+        .easing(Easing.Cubic.InOut)
         .onUpdate(() =>{
           camera.fov = tweenData.fov
           camera.updateProjectionMatrix()
@@ -736,17 +787,17 @@ export default class Control {
       }
     }
 
-    // sneaking check
-    if (
-        this.player.mode === Mode.sneaking &&
-        y < Math.floor(this.camera.position.y - 2) &&
-        side !== Side.down &&
-        side !== Side.up
-    ) {
-      matrix.setPosition(x, Math.floor(this.camera.position.y - 1), z)
-      this.tempMesh.setMatrixAt(index++, matrix)
-    }
-    this.tempMesh.instanceMatrix.needsUpdate = true
+    // // sneaking check
+    // if (
+    //     this.player.mode === Mode.sneaking &&
+    //     y < Math.floor(this.camera.position.y - 2) &&
+    //     side !== Side.down &&
+    //     side !== Side.up
+    // ) {
+    //   matrix.setPosition(x, Math.floor(this.camera.position.y - 1), z)
+    //   this.tempMesh.setMatrixAt(index++, matrix)
+    // }
+    // this.tempMesh.instanceMatrix.needsUpdate = true
 
     // update collide
     const origin = new THREE.Vector3(position.x, position.y - 1, position.z)
@@ -791,6 +842,18 @@ export default class Control {
         break
       }
     }
+    // sneaking check
+    if (
+        this.player.mode === Mode.sneaking &&
+        y < Math.floor(this.camera.position.y - 2) &&
+        side !== Side.down &&
+        side !== Side.up &&
+        !this.downCollide
+    ) {
+      matrix.setPosition(x, Math.floor(this.camera.position.y - 1), z)
+      this.tempMesh.setMatrixAt(index++, matrix)
+    }
+    this.tempMesh.instanceMatrix.needsUpdate = true
   }
 
   update = () => {

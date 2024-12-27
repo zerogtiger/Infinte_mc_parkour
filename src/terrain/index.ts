@@ -188,7 +188,7 @@ export default class Terrain {
         // console.log(this.parkour.get(x, z));
         let res = this.parkour.get(x, z);
         if (res != -1) {
-          this.customBlocks.push(new Block(x, res, z, BlockType.diamond, true));
+          this.customBlocks.push(new Block(x, res, z, BlockType.wood, true));
           for (let i = 0; i < this.parkour.toRemove.length; ++i) {
             this.customBlocks.push(new Block(this.parkour.toRemove[i].x, this.parkour.toRemove[i].y, this.parkour.toRemove[i].z, this.parkour.toRemove[i].type, false));
           }

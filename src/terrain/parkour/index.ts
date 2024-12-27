@@ -1,3 +1,4 @@
+import { BlockType } from "..";
 import Noise from "../noise";
 
 enum direction {
@@ -17,7 +18,7 @@ export default class Parkour {
   currDirCount = -1;
   noise: Noise;
 
-  toRemove: { x: number, y: number, z: number }[] = [];
+  toRemove: { x: number, y: number, z: number, type: BlockType }[] = [];
 
   constructor(noise: Noise, start_x: number, start_z: number) {
     this.noise = noise;
@@ -100,6 +101,8 @@ export default class Parkour {
         const currY = this.getY(this.lastPosGen.x + i, this.lastPosGen.z + Math.floor(i / deltaX * deltaZ)) + 3;
         const currZ = this.lastPosGen.z + Math.floor(i / deltaX * deltaZ);
         const currZZ = this.lastPosGen.z + Math.ceil(i / deltaX * deltaZ);
+        console.log(currZ);
+        console.log(currZZ);
 
         const treeOffsetz =
           this.noise.get(currX / this.noise.treeGap, currZ / this.noise.treeGap, this.noise.treeSeed) *
@@ -117,65 +120,84 @@ export default class Parkour {
 
         if (
           treeOffsetz > this.noise.treeThreshold &&
-          currY - 30 >= -3 &&
+          currY - 3 - 30 >= -3 &&
           stoneOffsetz < this.noise.stoneThreshold
         ) {
 
-          this.toRemove.push({ x: currX, y: currY, z: currZ });
-          this.toRemove.push({ x: currX, y: currY + 1, z: currZ });
-          this.toRemove.push({ x: currX, y: currY + 2, z: currZ });
-          this.toRemove.push({ x: currX, y: currY + 3, z: currZ });
+          this.toRemove.push({ x: currX, y: currY, z: currZ, type: BlockType.tree });
+          this.toRemove.push({ x: currX, y: currY + 1, z: currZ, type: BlockType.tree });
+          this.toRemove.push({ x: currX, y: currY + 2, z: currZ, type: BlockType.tree });
+          this.toRemove.push({ x: currX, y: currY + 3, z: currZ, type: BlockType.tree });
+          this.toRemove.push({ x: currX, y: currY + 4, z: currZ, type: BlockType.tree });
 
-          // leaf
-          // for (let i = -3; i < 3; i++) {
-          //   for (let j = -3; j < 3; j++) {
-          //     for (let k = -3; k < 3; k++) {
-          //       if (i === 0 && k === 0) {
-          //         continue
-          //       }
-          //       const leafOffset =
-          //         this.noise.get(
-          //           (x + i + j) / this.noise.leafGap,
-          //           (z + k) / this.noise.leafGap,
-          //           this.noise.leafSeed
-          //         ) * this.noise.leafAmp
-          //       if (leafOffset > this.noise.leafThreshold) {
-          //         idMap.set(
-          //           `${x + i}_${y + yOffset + noise.treeHeight + j}_${z + k}`,
-          //           blocksCount[BlockType.leaf]
-          //         )
-          //         matrix.setPosition(
-          //           x + i,
-          //           y + yOffset + noise.treeHeight + j,
-          //           z + k
-          //         )
-          //         blocks[BlockType.leaf].setMatrixAt(
-          //           blocksCount[BlockType.leaf]++,
-          //           matrix
-          //         )
-          //       }
-          //     }
-          //   }
-          // }
+          for (let j = 0; j <= 4; ++j) {
+            // const leafOffset =
+            //   this.noise.get(
+            //     (currX + j + 3) / this.noise.leafGap,
+            //     (currZ) / this.noise.leafGap,
+            //     this.noise.leafSeed
+            //   ) * this.noise.leafAmp
+            // if (leafOffset > this.noise.leafThreshold) {
+            // idMap.set(
+            //   `${x + i}_${y + yOffset + noise.treeHeight + j}_${z + k}`,
+            //   blocksCount[BlockType.leaf]
+            // )
+            this.toRemove.push({
+              x: currX,
+              y: currY + j,
+              z: currZ,
+              type: BlockType.leaf
+            })
+            // blocks[BlockType.leaf].setMatrixAt(
+            //   blocksCount[BlockType.leaf]++,
+            //   matrix
+            // )
+            // }
+          }
+          if (currZ !== currZZ) {
+            for (let j = 0; j <= 4; ++j) {
+              // const leafOffset =
+              //   this.noise.get(
+              //     (currX + j + 3) / this.noise.leafGap,
+              //     (currZZ) / this.noise.leafGap,
+              //     this.noise.leafSeed
+              //   ) * this.noise.leafAmp
+              // if (leafOffset > this.noise.leafThreshold) {
+              // idMap.set(
+              //   `${x + i}_${y + yOffset + noise.treeHeight + j}_${z + k}`,
+              //   blocksCount[BlockType.leaf]
+              // )
+              this.toRemove.push({
+                x: currX,
+                y: currY + j,
+                z: currZZ,
+                type: BlockType.leaf
+              })
+              // blocks[BlockType.leaf].setMatrixAt(
+              //   blocksCount[BlockType.leaf]++,
+              //   matrix
+              // )
+              // }
+            }
+          }
         }
         if (
+          currZ != currZZ &&
           treeOffsetZZ > this.noise.treeThreshold &&
-          currY - 30 >= -3 &&
+          currY - 30 - 3 >= -3 &&
           stoneOffsetZZ < this.noise.stoneThreshold
         ) {
-
-          this.toRemove.push({ x: currX, y: currY, z: currZZ });
-          this.toRemove.push({ x: currX, y: currY + 1, z: currZZ });
-          this.toRemove.push({ x: currX, y: currY + 2, z: currZZ });
-          this.toRemove.push({ x: currX, y: currY + 3, z: currZZ });
+          this.toRemove.push({ x: currX, y: currY, z: currZZ, type: BlockType.tree });
+          this.toRemove.push({ x: currX, y: currY + 1, z: currZZ, type: BlockType.tree });
+          this.toRemove.push({ x: currX, y: currY + 2, z: currZZ, type: BlockType.tree });
+          this.toRemove.push({ x: currX, y: currY + 3, z: currZZ, type: BlockType.tree });
+          this.toRemove.push({ x: currX, y: currY + 4, z: currZZ, type: BlockType.tree });
         }
       }
     }
 
-
     // retrieve data
     if (this.mapOfCoords.has(`${x},${z}`)) {
-      console.log(this.mapOfCoords);
       let ret: number = this.mapOfCoords.get(`${x},${z}`)!
       this.mapOfCoords.delete(`${x},${z}`);
       return ret;

@@ -685,15 +685,15 @@ export default class Control {
         let w = this.player.body.width
         let d = this.player.body.depth
         // this.raycasterDown.ray.origin = position
-        this.raycasterDown[0].ray.origin.set(position.x - w / 2, position.y, position.z - d / 2)
-        this.raycasterDown[1].ray.origin.set(position.x + w / 2, position.y, position.z - d / 2)
-        this.raycasterDown[2].ray.origin.set(position.x - w / 2, position.y, position.z + d / 2)
-        this.raycasterDown[3].ray.origin.set(position.x + w / 2, position.y, position.z + d / 2)
+        this.raycasterDown[0].ray.origin.set(position.x - w / 2, position.y - 1, position.z - d / 2)
+        this.raycasterDown[1].ray.origin.set(position.x + w / 2, position.y - 1, position.z - d / 2)
+        this.raycasterDown[2].ray.origin.set(position.x - w / 2, position.y - 1, position.z + d / 2)
+        this.raycasterDown[3].ray.origin.set(position.x + w / 2, position.y - 1, position.z + d / 2)
 
-        this.raycasterDown[4].ray.origin.set(position.x, position.y, position.z - d / 2); // front-center
-        this.raycasterDown[5].ray.origin.set(position.x, position.y, position.z + d / 2); // back-center
-        this.raycasterDown[6].ray.origin.set(position.x - w / 2, position.y, position.z); // left-center
-        this.raycasterDown[7].ray.origin.set(position.x + w / 2, position.y, position.z); // right-center
+        this.raycasterDown[4].ray.origin.set(position.x, position.y - 1, position.z - d / 2); // front-center
+        this.raycasterDown[5].ray.origin.set(position.x, position.y- 1, position.z + d / 2); // back-center
+        this.raycasterDown[6].ray.origin.set(position.x - w / 2, position.y - 1, position.z); // left-center
+        this.raycasterDown[7].ray.origin.set(position.x + w / 2, position.y - 1, position.z); // right-center
         for (const r of this.raycasterDown){
           if (this.isJumping){
             r.far = 1.5*far

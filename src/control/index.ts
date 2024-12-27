@@ -64,7 +64,10 @@ export default class Control {
   doubleTapThreshold: number = 300; // milliseconds
   isDoubleTap: boolean = false;
 
-  raycasterDown = new THREE.Raycaster()
+  raycasterDown = [new THREE.Raycaster(), new THREE.Raycaster(),
+                   new THREE.Raycaster(), new THREE.Raycaster(),
+                   new THREE.Raycaster(), new THREE.Raycaster(),
+                   new THREE.Raycaster(), new THREE.Raycaster()]
   raycasterUp = new THREE.Raycaster()
   raycasterFront = new THREE.Raycaster()
   raycasterBack = new THREE.Raycaster()
@@ -109,14 +112,18 @@ export default class Control {
 
   initRayCaster = () => {
     this.raycasterUp.ray.direction = new THREE.Vector3(0, 1, 0)
-    this.raycasterDown.ray.direction = new THREE.Vector3(0, -1, 0)
+    for (const ray of this.raycasterDown){
+      ray.ray.direction = new THREE.Vector3(0, -1, 0)
+      ray.far = this.player.body.height
+    }
+    // this.raycasterDown.ray.direction = new THREE.Vector3(0, -1, 0)
     this.raycasterFront.ray.direction = new THREE.Vector3(1, 0, 0)
     this.raycasterBack.ray.direction = new THREE.Vector3(-1, 0, 0)
     this.raycasterLeft.ray.direction = new THREE.Vector3(0, 0, -1)
     this.raycasterRight.ray.direction = new THREE.Vector3(0, 0, 1)
 
     this.raycasterUp.far = 1.2
-    this.raycasterDown.far = this.player.body.height
+    // this.raycasterDown.far = this.player.body.height
     this.raycasterFront.far = this.player.body.width
     this.raycasterBack.far = this.player.body.width
     this.raycasterLeft.far = this.player.body.width
@@ -616,7 +623,6 @@ export default class Control {
     this.camera.position.z +=
         distance * (this.player.speed / Math.PI) * 2 * delta
   }
-
   // collide checking
   collideCheckAll = (
       position: THREE.Vector3,
@@ -676,8 +682,26 @@ export default class Control {
         this.raycasterRight.ray.origin = position
         break
       case Side.down:
-        this.raycasterDown.ray.origin = position
-        this.raycasterDown.far = far
+        let w = this.player.body.width
+        let d = this.player.body.depth
+        // this.raycasterDown.ray.origin = position
+        this.raycasterDown[0].ray.origin.set(position.x - w / 2, position.y, position.z - d / 2)
+        this.raycasterDown[1].ray.origin.set(position.x + w / 2, position.y, position.z - d / 2)
+        this.raycasterDown[2].ray.origin.set(position.x - w / 2, position.y, position.z + d / 2)
+        this.raycasterDown[3].ray.origin.set(position.x + w / 2, position.y, position.z + d / 2)
+
+        this.raycasterDown[4].ray.origin.set(position.x, position.y, position.z - d / 2); // front-center
+        this.raycasterDown[5].ray.origin.set(position.x, position.y, position.z + d / 2); // back-center
+        this.raycasterDown[6].ray.origin.set(position.x - w / 2, position.y, position.z); // left-center
+        this.raycasterDown[7].ray.origin.set(position.x + w / 2, position.y, position.z); // right-center
+        for (const r of this.raycasterDown){
+          if (this.isJumping){
+            r.far = 1.5*far
+          } else {
+            r.far = far
+          }
+        }
+        // this.raycasterDown.far = far
         break
       case Side.up:
         this.raycasterUp.ray.origin = new THREE.Vector3().copy(position)
@@ -781,8 +805,19 @@ export default class Control {
         break
       }
       case Side.down: {
-        const c1 = this.raycasterDown.intersectObject(this.tempMesh).length
-        c1 ? (this.downCollide = true) : (this.downCollide = false)
+        // Check all 4 rays for down collision
+        let collisionDetected = false;
+        for (const r of this.raycasterDown) {
+          if (r.intersectObject(this.tempMesh).length > 0) {
+            collisionDetected = true;
+            break; // Exit the loop once we detect a collision
+          }
+        }
+
+        this.downCollide = collisionDetected; // Set downCollide based on the result
+        // const c1 = this.raycasterDown.intersectObject(this.tempMesh).length
+        // c1 ? (this.downCollide = true) : (this.downCollide = false)
+        console.log(this.downCollide)
         break
       }
       case Side.up: {

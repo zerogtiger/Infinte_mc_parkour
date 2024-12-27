@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="horsearmor">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/src/static/textures/entity/horse/armor/horsearmor.zip!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

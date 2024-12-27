@@ -695,11 +695,8 @@ export default class Control {
         this.raycasterDown[6].ray.origin.set(position.x - w / 2, position.y - 1, position.z); // left-center
         this.raycasterDown[7].ray.origin.set(position.x + w / 2, position.y - 1, position.z); // right-center
         for (const r of this.raycasterDown){
-          if (this.isJumping){
-            r.far = 1.5*far
-          } else {
+
             r.far = far
-          }
         }
         // this.raycasterDown.far = far
         break

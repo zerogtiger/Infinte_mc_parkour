@@ -29,10 +29,10 @@ export default class UI {
         terrain.noise.treeSeed = Math.random()
         terrain.noise.coalSeed = Math.random()
         terrain.noise.leafSeed = Math.random()
-        terrain.customBlocks = []
+        terrain.resetCustomBlocks()
         terrain.initBlocks()
         terrain.generate()
-        terrain.camera.position.y = 40
+        terrain.camera.position.y = 60
         control.player.setMode(Mode.walking)
       }
       !isMobile && control.control.lock()

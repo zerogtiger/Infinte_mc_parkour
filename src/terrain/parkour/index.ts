@@ -1,3 +1,4 @@
+import { CylinderBufferGeometry } from "three";
 import { BlockType } from "..";
 import Noise from "../noise";
 
@@ -5,11 +6,45 @@ enum direction {
   left_small, left_large, right_small, right_large, forward
 }
 
-const getRandom = (min: number, max: number) => {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
 export default class Parkour {
+
+  getRandom = (min: number, max: number) => {
+    return Math.floor(this.rand() * (max - min + 1)) + min;
+  }
+
+  cyrb128 = (str: string) => {
+    let h1 = 1779033703, h2 = 3144134277,
+      h3 = 1013904242, h4 = 2773480762;
+    for (let i = 0, k; i < str.length; i++) {
+      k = str.charCodeAt(i);
+      h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+      h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+      h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+      h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+    }
+    h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+    h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+    h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+    h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+    h1 ^= (h2 ^ h3 ^ h4), h2 ^= h1, h3 ^= h1, h4 ^= h1;
+    return [h1 >>> 0, h2 >>> 0, h3 >>> 0, h4 >>> 0];
+  }
+
+  sfc32 = (a: number, b: number, c: number, d: number) => {
+    return () => {
+      a |= 0; b |= 0; c |= 0; d |= 0;
+      let t = (a + b | 0) + d | 0;
+      d = d + 1 | 0;
+      a = b ^ b >>> 9;
+      b = c + (c << 3) | 0;
+      c = (c << 21 | c >>> 11);
+      c = c + t | 0;
+      return (t >>> 0) / 4294967296;
+    }
+  }
+
+  rand: () => number;
 
   lastPosGen: { x: number, y: number, z: number };
   mapOfCoords = new Map<string, number>();
@@ -23,7 +58,10 @@ export default class Parkour {
   constructor(noise: Noise, start_x: number, start_z: number) {
     this.noise = noise;
     this.lastPosGen = { x: start_x, y: this.getY(start_x, start_z) + 14, z: start_z }
-    this.mapOfCoords.set(`${this.lastPosGen.x},${this.lastPosGen.z}`, this.getY(this.lastPosGen.x, this.lastPosGen.z) + 14)
+    this.mapOfCoords.set(`${this.lastPosGen.x},${this.lastPosGen.z}`, this.getY(this.lastPosGen.x, this.lastPosGen.z) + 15)
+
+    const seed = this.cyrb128(this.noise.seed.toString());
+    this.rand = this.sfc32(seed[0], seed[1], seed[2], seed[3])
   }
 
   getY = (x: number, z: number) => {
@@ -36,7 +74,7 @@ export default class Parkour {
     // requires further generation
     while (this.lastPosGen.x <= x) {
       if (this.currDirCount < 0) {
-        const newD = getRandom(0, 4);
+        const newD = this.getRandom(0, 4);
         switch (newD) {
           case 0:
             this.currDirection = direction.left_small;
@@ -54,13 +92,13 @@ export default class Parkour {
             this.currDirection = direction.forward;
             break;
         }
-        this.currDirCount = getRandom(10, 20);
+        this.currDirCount = this.getRandom(10, 20);
       }
       // continue to proceed in current direction
       let deltaX, deltaZ: number;
       switch (this.currDirection) {
         case direction.forward:
-          deltaX = getRandom(3, 5);
+          deltaX = this.getRandom(3, 5);
           deltaZ = 0;
           break;
         case direction.left_small:
@@ -68,7 +106,7 @@ export default class Parkour {
           deltaZ = -1;
           break;
         case direction.left_large:
-          deltaX = getRandom(2, 3);
+          deltaX = this.getRandom(2, 3);
           deltaZ = -2;
           break;
         case direction.right_small:
@@ -76,7 +114,7 @@ export default class Parkour {
           deltaZ = 1;
           break;
         case direction.right_large:
-          deltaX = getRandom(2, 3);
+          deltaX = this.getRandom(2, 3);
           deltaZ = 2;
           break;
       }

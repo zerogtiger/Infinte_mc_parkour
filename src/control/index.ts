@@ -69,8 +69,6 @@ export default class Control {
   isDoubleTap: boolean = false;
 
   raycasterDown: THREE.Raycaster[] = [];
-  // new THREE.Raycaster(), new THREE.Raycaster(),
-  // new THREE.Raycaster(), new THREE.Raycaster(),
   raycasterUp: THREE.Raycaster[] = [];
   raycasterFront: THREE.Raycaster[] = [];
   raycasterBack: THREE.Raycaster[] = [];
@@ -802,37 +800,116 @@ export default class Control {
       }
     }
 
-    // sneaking doesn't fall off edge
-    // if (
-    //   this.player.mode === Mode.sneaking &&
-    //   y < Math.floor(this.camera.position.y - 2) &&
-    //   side !== Side.down &&
-    //   side !== Side.up
-    // ) {
-    //   matrix.setPosition(x, Math.floor(this.camera.position.y - 1), z)
-    //   this.tempMesh.setMatrixAt(index++, matrix)
-    // }
-
-    if (this.player.mode == Mode.sneaking) {
-      for (let dx = -1; dx <= 1; ++dx) {
-        for (let dz = -1; dz <= 1; ++dz) {
-          if (dz == 0 && dx == 0) {
-            continue;
-          }
-          if (!ledge[dx + 1][dz + 1]) {
-            matrix.setPosition(x + dx + dx * (w - 0.04)/2, Math.floor(this.camera.position.y - 1), z + dz + dz * (w - 0.04)/2)
-            // matrix.setPosition(x + dx, Math.floor(this.camera.position.y - 1), z + dz)
-          this.tempMesh.setMatrixAt(index++, matrix)
-          }
-        }
-      }
-
-    }
-
     this.tempMesh.instanceMatrix.needsUpdate = true
 
     // update collide
     // const origin = new THREE.Vector3(position.x, position.y - 1, position.z)
+    this.downCollide = false;
+    const st = new Set<number>();
+    for (let i = 0; i < 4; ++i) {
+      const r = this.raycasterDown[i];
+      if (r.intersectObject(this.tempMesh).length > 0) {
+        this.downCollide = true;
+      }
+      else {
+        st.add(i);
+      }
+    }
+    if (this.player.mode == Mode.sneaking) {
+      const shiftDelta = 0.05
+      if (st.has(0)) {
+        matrix.setPosition(Math.round(this.raycasterDown[0].ray.origin.x) - 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round(this.raycasterDown[0].ray.origin.z) - 1 * (w - shiftDelta))
+        this.tempMesh.setMatrixAt(index++, matrix)
+        //
+        // const geometry = new THREE.BoxGeometry(1, 1, 1);
+        // geometry.translate(Math.round(this.raycasterDown[0].ray.origin.x) - 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round(this.raycasterDown[0].ray.origin.z) - 1 * (w - shiftDelta))
+        // const material = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 });
+        // const cube = new THREE.Mesh(geometry, material);
+        // this.scene.add(cube);
+      }
+      if (st.has(1)) {
+        matrix.setPosition(Math.round(this.raycasterDown[1].ray.origin.x) + 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round(this.raycasterDown[1].ray.origin.z) - 1 * (w - shiftDelta))
+        this.tempMesh.setMatrixAt(index++, matrix)
+        // // matrix.setPosition(x + 1 * (w - 0.04) / 2, Math.floor(this.camera.position.y - 1), z - 1 * (w - 0.04) / 2)
+        // const geometry = new THREE.BoxGeometry(1, 1, 1);
+        // geometry.translate(Math.round(this.raycasterDown[1].ray.origin.x) + 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round(this.raycasterDown[1].ray.origin.z) - 1 * (w - shiftDelta))
+        // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.1 });
+        // const cube = new THREE.Mesh(geometry, material);
+        // this.scene.add(cube);
+      }
+      if (st.has(2)) {
+        matrix.setPosition(Math.round(this.raycasterDown[2].ray.origin.x) - 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round(this.raycasterDown[2].ray.origin.z) + 1 * (w - shiftDelta))
+        this.tempMesh.setMatrixAt(index++, matrix)
+        // // matrix.setPosition(x - 1 * (w - 0.04) / 2, Math.floor(this.camera.position.y - 1), z + 1 * (w - 0.04) / 2)
+        // const geometry = new THREE.BoxGeometry(1, 1, 1);
+        // geometry.translate(Math.round(this.raycasterDown[2].ray.origin.x) - 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round(this.raycasterDown[2].ray.origin.z) + 1 * (w - shiftDelta))
+        // const material = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.1 });
+        // const cube = new THREE.Mesh(geometry, material);
+        // this.scene.add(cube);
+      }
+      if (st.has(3)) {
+        matrix.setPosition(Math.round(this.raycasterDown[3].ray.origin.x) + 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round(this.raycasterDown[3].ray.origin.z) + 1 * (w - shiftDelta))
+        this.tempMesh.setMatrixAt(index++, matrix)
+        // // matrix.setPosition(x + 1 * (w - 0.04) / 2, Math.floor(this.camera.position.y - 1), z + 1 * (w - 0.04) / 2)
+        // const geometry = new THREE.BoxGeometry(1, 1, 1);
+        // geometry.translate(Math.round(this.raycasterDown[3].ray.origin.x) + 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round(this.raycasterDown[3].ray.origin.z) + 1 * (w - shiftDelta))
+        // const material = new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.1 });
+        // const cube = new THREE.Mesh(geometry, material);
+        // this.scene.add(cube);
+      }
+
+      if (st.has(0) && st.has(1)) {
+        matrix.setPosition(Math.round((this.raycasterDown[1].ray.origin.x + this.raycasterDown[0].ray.origin.x)/2), Math.floor(this.camera.position.y), Math.round((this.raycasterDown[1].ray.origin.z + this.raycasterDown[0].ray.origin.z)/2) - 1 * (w - shiftDelta))
+        this.tempMesh.setMatrixAt(index++, matrix)
+        // const geometry = new THREE.BoxGeometry(1, 1, 1);
+        // geometry.translate(Math.round((this.raycasterDown[1].ray.origin.x + this.raycasterDown[0].ray.origin.x)/2), Math.floor(this.camera.position.y), Math.round((this.raycasterDown[1].ray.origin.z + this.raycasterDown[0].ray.origin.z)/2) - 1 * (w - shiftDelta))
+        // const material = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 });
+        // const cube = new THREE.Mesh(geometry, material);
+        // this.scene.add(cube);
+      }
+      if (st.has(1) && st.has(3)) {
+        matrix.setPosition(Math.round((this.raycasterDown[1].ray.origin.x + this.raycasterDown[3].ray.origin.x)/2) + 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round((this.raycasterDown[1].ray.origin.z + this.raycasterDown[3].ray.origin.z)/2))
+        this.tempMesh.setMatrixAt(index++, matrix)
+        // // matrix.setPosition(x + 1 * (w - 0.04) / 2, Math.floor(this.camera.position.y - 1), z - 1 * (w - 0.04) / 2)
+        // const geometry = new THREE.BoxGeometry(1, 1, 1);
+        // geometry.translate(Math.round((this.raycasterDown[1].ray.origin.x + this.raycasterDown[3].ray.origin.x)/2) + 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round((this.raycasterDown[1].ray.origin.z + this.raycasterDown[3].ray.origin.z)/2))
+        // const material = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 });
+        // const cube = new THREE.Mesh(geometry, material);
+        // this.scene.add(cube);
+      }
+      if (st.has(2) && st.has(3)) {
+        matrix.setPosition(Math.round((this.raycasterDown[2].ray.origin.x + this.raycasterDown[3].ray.origin.x)/2), Math.floor(this.camera.position.y), Math.round((this.raycasterDown[2].ray.origin.z + this.raycasterDown[3].ray.origin.z)/2) + 1 * (w - shiftDelta))
+        this.tempMesh.setMatrixAt(index++, matrix)
+        // // matrix.setPosition(x - 1 * (w - 0.04) / 2, Math.floor(this.camera.position.y - 1), z + 1 * (w - 0.04) / 2)
+        // const geometry = new THREE.BoxGeometry(1, 1, 1);
+        // geometry.translate(Math.round((this.raycasterDown[2].ray.origin.x + this.raycasterDown[3].ray.origin.x)/2), Math.floor(this.camera.position.y), Math.round((this.raycasterDown[2].ray.origin.z + this.raycasterDown[3].ray.origin.z)/2) + 1 * (w - shiftDelta))
+        // const material = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 });
+        // const cube = new THREE.Mesh(geometry, material);
+        // this.scene.add(cube);
+      }
+      if (st.has(2) && st.has(0)) {
+        matrix.setPosition(Math.round((this.raycasterDown[2].ray.origin.x + this.raycasterDown[0].ray.origin.x)/2) - 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round((this.raycasterDown[2].ray.origin.z + this.raycasterDown[0].ray.origin.z)/2))
+        this.tempMesh.setMatrixAt(index++, matrix)
+        // // matrix.setPosition(x + 1 * (w - 0.04) / 2, Math.floor(this.camera.position.y - 1), z + 1 * (w - 0.04) / 2)
+        // const geometry = new THREE.BoxGeometry(1, 1, 1);
+        // geometry.translate(Math.round((this.raycasterDown[2].ray.origin.x + this.raycasterDown[0].ray.origin.x)/2) - 1 * (w - shiftDelta), Math.floor(this.camera.position.y), Math.round((this.raycasterDown[2].ray.origin.z + this.raycasterDown[0].ray.origin.z)/2))
+        // const material = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 });
+        // const cube = new THREE.Mesh(geometry, material);
+        // this.scene.add(cube);
+      }
+      // for (let dx = -1; dx <= 1; ++dx) {
+      //   for (let dz = -1; dz <= 1; ++dz) {
+      //     if (dz == 0 && dx == 0) {
+      //       continue;
+      //     }
+      //     if (!ledge[dx + 1][dz + 1]) {
+      //       matrix.setPosition(x + dx + dx * (w - 0.04) / 2, Math.floor(this.camera.position.y - 1), z + dz + dz * (w - 0.04) / 2)
+      //       // matrix.setPosition(x + dx, Math.floor(this.camera.position.y - 1), z + dz)
+      //       this.tempmesh.setmatrixat(index++, matrix)
+      //     }
+      //   }
+      // }
+    }
     this.frontCollide = false;
     for (const r of this.raycasterFront) {
       if (r.intersectObject(this.tempMesh).length > 0) {
@@ -865,14 +942,6 @@ export default class Control {
     for (const r of this.raycasterUp) {
       if (r.intersectObject(this.tempMesh).length > 0) {
         this.upCollide = true;
-        break; // Exit the loop once we detect a collision
-      }
-    }
-    this.downCollide = false;
-    for (let i = 0; i < 4; ++i) {
-      const r = this.raycasterDown[i];
-      if (r.intersectObject(this.tempMesh).length > 0) {
-        this.downCollide = true;
         break; // Exit the loop once we detect a collision
       }
     }

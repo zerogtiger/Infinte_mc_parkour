@@ -16,6 +16,7 @@ Key objective:
     - [ ] Levels (with difficulty varying generation algorithms)
 - [ ] Worldwide regional leaderboard / weekly leaderboards
 - [ ] Easter egg: level with tetris block
+- [ ] Audio and block sounds
 - [ ] Ladders
 - [ ] Add lookalike water generation
 

@@ -168,6 +168,11 @@ export default class Control {
         }
         this.downKeys.w = true
         this.velocity.x = this.player.speed
+      } else if (e.key == 'Shift' && (this.player.mode === Mode.walking || this.player.mode === Mode.sprinting)){
+        this.jumpInterval && clearInterval(this.jumpInterval)
+        this.jumpInterval = setInterval(() => {
+          this.setMovementHandler(e)
+        }, 120)
       }
       return
     }
@@ -186,6 +191,12 @@ export default class Control {
 
       case 'w':
       case 'W':
+        if (e.shiftKey && this.spaceHolding){
+          this.jumpInterval && clearInterval(this.jumpInterval)
+          this.jumpInterval = setInterval(() => {
+            this.setMovementHandler(e)
+          }, 120)
+        }
         const currentTime = Date.now();
 
         // Check for double-tap condition
@@ -229,13 +240,11 @@ export default class Control {
         this.velocity.z = this.player.speed
         break
       case ' ':
-        if (this.player.mode === Mode.sneaking && !this.isJumping) {
-          return
-        }
+
         if (this.player.mode === Mode.walking) {
           // jump
           if (!this.isJumping) {
-            this.velocity.y = 8
+            this.velocity.y = 8*0.9
             this.isJumping = true
             this.downCollide = false
             this.far = 0
@@ -246,7 +255,17 @@ export default class Control {
         } else if (this.player.mode === Mode.sprinting) { // sprinting
           // jump (for sprint)
           if (!this.isJumping) {
-            this.velocity.y = 8
+            this.velocity.y = 8*0.98
+            this.isJumping = true
+            this.downCollide = false
+            this.far = 0
+            setTimeout(() => {
+              this.far = this.player.body.height
+            }, 300)
+          }
+        } else if (this.player.mode == Mode.sneaking){
+          if (!this.isJumping) {
+            this.velocity.y = 8 * 0.85
             this.isJumping = true
             this.downCollide = false
             this.far = 0
@@ -258,21 +277,58 @@ export default class Control {
           this.velocity.y += this.player.speed
         }
         if ((this.player.mode === Mode.walking || this.player.mode === Mode.sprinting) && !this.spaceHolding) {
+
           this.spaceHolding = true
           this.jumpInterval = setInterval(() => {
             this.setMovementHandler(e)
-          }, 10)
+          }, 60)
+        } else if ((this.player.mode === Mode.sneaking) && !this.spaceHolding) {
+          this.spaceHolding = true
+          this.jumpInterval = setInterval(() => {
+            this.setMovementHandler(e)
+          }, 120)
         }
         break
       case 'Shift':
-        if (this.player.mode === Mode.walking || this.player.mode === Mode.sprinting) {
-          if (this.player.mode === Mode.sprinting) {
+        if (this.player.mode != Mode.flying) {
+          if (this.player.mode === Mode.sprinting){
+
             this.updateFOV(this.camera.fov - 20)
             this.camera.updateProjectionMatrix()
-            this.player.setMode(Mode.walking)
-          }
-          if (!this.isJumping) {
             this.player.setMode(Mode.sneaking)
+            if (this.spaceHolding){
+              this.jumpInterval && clearInterval(this.jumpInterval)
+              this.jumpInterval = setInterval(() => {
+                this.setMovementHandler(e)
+              }, 120)
+              if (!this.isJumping) {
+                this.velocity.y = 8 * 0.85
+                this.isJumping = true
+                this.downCollide = false
+                this.far = 0
+                setTimeout(() => {
+                  this.far = this.player.body.height
+                }, 300)
+              }
+            }
+          }
+          if (this.player.mode === Mode.walking || this.player.mode === Mode.sneaking) {
+            this.player.setMode(Mode.sneaking)
+            if (this.spaceHolding){
+              this.jumpInterval && clearInterval(this.jumpInterval)
+              this.jumpInterval = setInterval(() => {
+                this.setMovementHandler(e)
+              }, 120)
+              if (!this.isJumping) {
+                this.velocity.y = 8 * 0.85
+                this.isJumping = true
+                this.downCollide = false
+                this.far = 0
+                setTimeout(() => {
+                  this.far = this.player.body.height
+                }, 300)
+              }
+            }
             if (this.downKeys.w) {
               this.velocity.x = this.player.speed
             }
@@ -285,7 +341,7 @@ export default class Control {
             if (this.downKeys.d) {
               this.velocity.z = this.player.speed
             }
-            this.camera.position.setY(this.camera.position.y - 0.2)
+            if (!this.spaceHolding) this.camera.position.setY(this.camera.position.y - 0.2)
           }
         } else {
           this.velocity.y -= this.player.speed
@@ -337,9 +393,7 @@ export default class Control {
         this.velocity.z = 0
         break
       case ' ':
-        if (this.player.mode === Mode.sneaking && !this.isJumping) {
-          return
-        }
+
         this.jumpInterval && clearInterval(this.jumpInterval)
         this.spaceHolding = false
         if (this.player.mode === Mode.walking) {
@@ -349,23 +403,22 @@ export default class Control {
         break
       case 'Shift':
         if (this.player.mode === Mode.sneaking) {
-          if (!this.isJumping) {
-            this.player.setMode(Mode.walking)
-            if (this.downKeys.w) {
-              this.velocity.x = this.player.speed
-            }
-            if (this.downKeys.s) {
-              this.velocity.x = -this.player.speed
-            }
-            if (this.downKeys.a) {
-              this.velocity.z = -this.player.speed
-            }
-            if (this.downKeys.d) {
-              this.velocity.z = this.player.speed
-            }
-            this.camera.position.setY(this.camera.position.y + 0.2)
+          this.player.setMode(Mode.walking)
+          if (this.downKeys.w) {
+            this.velocity.x = this.player.speed
           }
-        }
+          if (this.downKeys.s) {
+            this.velocity.x = -this.player.speed
+          }
+          if (this.downKeys.a) {
+            this.velocity.z = -this.player.speed
+          }
+          if (this.downKeys.d) {
+            this.velocity.z = this.player.speed
+          }
+          this.camera.position.setY(this.camera.position.y + 0.2)
+          }
+
         if (this.player.mode === Mode.walking) {
           return
         }
@@ -380,14 +433,15 @@ export default class Control {
     const camera = this.camera
     const tweenData = { fov: camera.fov }
     const tween = new Tween(tweenData)
-      .to({ fov: target }, 0.1 * 1000)
-      .easing(Easing.Bounce.InOut)
-      .onUpdate(() => {
-        camera.fov = tweenData.fov
-        camera.updateProjectionMatrix()
-      })
-      .start();
-    function animate() {
+
+        .to({fov: target}, 0.2 * 1000)
+        .easing(Easing.Cubic.InOut)
+        .onUpdate(() =>{
+          camera.fov = tweenData.fov
+          camera.updateProjectionMatrix()
+        })
+        .start();
+    function animate(){
       requestAnimationFrame(animate)
       tween.update()
     }
@@ -802,6 +856,7 @@ export default class Control {
 
     this.tempMesh.instanceMatrix.needsUpdate = true
 
+
     // update collide
     // const origin = new THREE.Vector3(position.x, position.y - 1, position.z)
     this.downCollide = false;
@@ -945,77 +1000,6 @@ export default class Control {
         break; // Exit the loop once we detect a collision
       }
     }
-    // if (this.leftCollide || this.rightCollide) {
-    //   this.camera.position.z = Math.round(this.camera.position.z * 10) / 10;
-    // }
-    // if (this.frontCollide || this.backCollide) {
-    //   this.camera.position.x = Math.round(this.camera.position.x * 10) / 10;
-    // }
-    // if (this.upCollide || this.downCollide) {
-    //   this.camera.position.y = Math.round(this.camera.position.y)
-    // }
-    // this.frontCollide = false;
-    // for (const r of this.raycasterFront) {
-    //   if (r.intersectObject(this.tempMesh).length > 0) {
-    //     this.frontCollide = true;
-    //     break; // Exit the loop once we detect a collision
-    //   }
-    // }
-    // switch (side) {
-    //   case Side.front: {
-    //     this.frontCollide = false;
-    //     for (const r of this.raycasterFront) {
-    //       if (r.intersectObject(this.tempMesh).length > 0) {
-    //         this.frontCollide = true;
-    //         break; // Exit the loop once we detect a collision
-    //       }
-    //     }
-    //     // const c1 = this.raycasterFront.intersectObject(this.tempMesh).length
-    //     // this.raycasterFront.ray.origin = origin
-    //     // const c2 = this.raycasterFront.intersectObject(this.tempMesh).length
-    //     // c1 || c2 ? (this.frontCollide = true) : (this.frontCollide = false)
-    //     break
-    //   }
-    //   case Side.back: {
-    //     const c1 = this.raycasterBack.intersectObject(this.tempMesh).length
-    //     this.raycasterBack.ray.origin = origin
-    //     const c2 = this.raycasterBack.intersectObject(this.tempMesh).length
-    //     c1 || c2 ? (this.backCollide = true) : (this.backCollide = false)
-    //     break
-    //   }
-    //   case Side.left: {
-    //     const c1 = this.raycasterLeft.intersectObject(this.tempMesh).length
-    //     this.raycasterLeft.ray.origin = origin
-    //     const c2 = this.raycasterLeft.intersectObject(this.tempMesh).length
-    //     c1 || c2 ? (this.leftCollide = true) : (this.leftCollide = false)
-    //     break
-    //   }
-    //   case Side.right: {
-    //     const c1 = this.raycasterRight.intersectObject(this.tempMesh).length
-    //     this.raycasterRight.ray.origin = origin
-    //     const c2 = this.raycasterRight.intersectObject(this.tempMesh).length
-    //     c1 || c2 ? (this.rightCollide = true) : (this.rightCollide = false)
-    //     break
-    //   }
-    //   case Side.down: {
-    //     // Check all 4 rays for down collision
-    //     this.downCollide = false;
-    //     // console.log("hi")
-    //     for (let i = 1; i <= 4; ++i) {
-    //       const r = this.raycasterDown[i];
-    //       if (r.intersectObject(this.tempMesh).length > 0) {
-    //         this.downCollide = true;
-    //         break; // Exit the loop once we detect a collision
-    //       }
-    //     }
-    //     break
-    //   }
-    //   case Side.up: {
-    //     const c1 = this.raycasterUp.intersectObject(this.tempMesh).length
-    //     c1 ? (this.upCollide = true) : (this.upCollide = false)
-    //     break
-    //   }
-    // }
   }
 
   update = () => {

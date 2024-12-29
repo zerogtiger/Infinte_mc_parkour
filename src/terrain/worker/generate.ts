@@ -1,4 +1,6 @@
 import * as THREE from 'three'
+import Terrain from '..'
+// import { BlockType } from '..'
 import Block from '../mesh/block'
 import Noise from '../noise'
 
@@ -33,7 +35,7 @@ onmessage = (
     treeSeed: number
     stoneSeed: number
     coalSeed: number
-    idMap: Map<string, number>
+    idMap: Map<string, { index: number, type: BlockType }>
     blocksFactor: number[]
     blocksCount: number[]
     customBlocks: Block[]
@@ -55,6 +57,8 @@ onmessage = (
     chunkSize
   } = msg.data
 
+  // console.log(customBlocks);
+
   const maxCount = (distance * chunkSize * 2 + chunkSize) ** 2 + 500
 
   if (isFirstRun) {
@@ -66,7 +70,6 @@ onmessage = (
       )
       blocks.push(block)
     }
-
     isFirstRun = false
   }
 
@@ -92,6 +95,7 @@ onmessage = (
       z < chunkSize * distance + chunkSize + chunkSize * chunk.y;
       z++
     ) {
+
       const y = 30
       const yOffset = Math.floor(
         noise.get(x / noise.gap, z / noise.gap, noise.seed) * noise.amp
@@ -110,14 +114,14 @@ onmessage = (
       if (stoneOffset > noise.stoneThreshold) {
         if (coalOffset > noise.coalThreshold) {
           // coal
-          idMap.set(`${x}_${y + yOffset}_${z}`, blocksCount[BlockType.coal])
+          idMap.set(`${x}_${y + yOffset}_${z}`, { index: blocksCount[BlockType.coal], type: BlockType.coal })
           blocks[BlockType.coal].setMatrixAt(
             blocksCount[BlockType.coal]++,
             matrix
           )
         } else {
           // stone
-          idMap.set(`${x}_${y + yOffset}_${z}`, blocksCount[BlockType.stone])
+          idMap.set(`${x}_${y + yOffset}_${z}`, { index: blocksCount[BlockType.stone], type: BlockType.stone })
           blocks[BlockType.stone].setMatrixAt(
             blocksCount[BlockType.stone]++,
             matrix
@@ -126,14 +130,14 @@ onmessage = (
       } else {
         if (yOffset < -3) {
           // sand
-          idMap.set(`${x}_${y + yOffset}_${z}`, blocksCount[BlockType.sand])
+          idMap.set(`${x}_${y + yOffset}_${z}`, { index: blocksCount[BlockType.sand], type: BlockType.sand })
           blocks[BlockType.sand].setMatrixAt(
             blocksCount[BlockType.sand]++,
             matrix
           )
         } else {
           // grass
-          idMap.set(`${x}_${y + yOffset}_${z}`, blocksCount[BlockType.grass])
+          idMap.set(`${x}_${y + yOffset}_${z}`, { index: blocksCount[BlockType.grass], type: BlockType.grass })
           blocks[BlockType.grass].setMatrixAt(
             blocksCount[BlockType.grass]++,
             matrix
@@ -152,7 +156,7 @@ onmessage = (
         stoneOffset < noise.stoneThreshold
       ) {
         for (let i = 1; i <= noise.treeHeight; i++) {
-          idMap.set(`${x}_${y + yOffset + i}_${z}`, blocksCount[BlockType.tree])
+          idMap.set(`${x}_${y + yOffset + i}_${z}`, { index: blocksCount[BlockType.tree], type: BlockType.tree })
 
           matrix.setPosition(x, y + yOffset + i, z)
 
@@ -178,7 +182,7 @@ onmessage = (
               if (leafOffset > noise.leafThreshold) {
                 idMap.set(
                   `${x + i}_${y + yOffset + noise.treeHeight + j}_${z + k}`,
-                  blocksCount[BlockType.leaf]
+                  {index: blocksCount[BlockType.leaf], type: BlockType.leaf}
                 )
                 matrix.setPosition(
                   x + i,
@@ -210,7 +214,7 @@ onmessage = (
         blocks[block.type].setMatrixAt(blocksCount[block.type]++, matrix)
       } else {
         // removed blocks
-        const id = idMap.get(`${block.x}_${block.y}_${block.z}`)
+        const id = idMap.get(`${block.x}_${block.y}_${block.z}`)?.index
 
         blocks[block.type].setMatrixAt(
           id!,

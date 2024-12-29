@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import Terrain from '..'
+import Block from '../mesh/block'
 
 /**
  * Highlight block on crosshair

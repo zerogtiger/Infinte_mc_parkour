@@ -689,6 +689,7 @@ export default class Control {
 
     // block to remove
     let removed = [[false, false, false], [false, false, false], [false, false, false]];
+    let ledge = [[false, false, false], [false, false, false], [false, false, false]];
     let treeRemoved = new Array<boolean>(
       this.terrain.noise.treeHeight + 1
     ).fill(false)
@@ -747,6 +748,9 @@ export default class Control {
           // placed blocks
           matrix.setPosition(block.x, block.y, block.z)
           this.tempMesh.setMatrixAt(index++, matrix)
+          if (block.y == Math.round(position.y) || block.y == Math.round(position.y - 1) || block.y == Math.round(position.y - 2)) {
+            ledge[block.x - x + 1][block.y - y + 1] = true;
+          }
         } else if (block.y === y) {
           // removed blocks
           removed[block.x - x + 1][block.z - z + 1] = true
@@ -765,6 +769,9 @@ export default class Control {
         if (!removed[dx + 1][dz + 1]) {
           matrix.setPosition(x + dx, y, z + dz)
           this.tempMesh.setMatrixAt(index++, matrix)
+          if (y == Math.round(position.y) || y == Math.round(position.y - 1) || y == Math.round(position.y - 2)) {
+            ledge[dx + 1][dz + 1] = true;
+          }
         }
       }
     }
@@ -788,6 +795,9 @@ export default class Control {
         ) {
           matrix.setPosition(x, y + i, z)
           this.tempMesh.setMatrixAt(index++, matrix)
+          if (y + i == Math.round(position.y) || y + i == Math.round(position.y - 1) || y + i == Math.round(position.y - 2)) {
+            // ledge[0][0] = true;
+          }
         }
       }
     }
@@ -802,6 +812,23 @@ export default class Control {
     //   matrix.setPosition(x, Math.floor(this.camera.position.y - 1), z)
     //   this.tempMesh.setMatrixAt(index++, matrix)
     // }
+
+    if (this.player.mode == Mode.sneaking) {
+      for (let dx = -1; dx <= 1; ++dx) {
+        for (let dz = -1; dz <= 1; ++dz) {
+          if (dz == 0 && dx == 0) {
+            continue;
+          }
+          if (!ledge[dx + 1][dz + 1]) {
+            matrix.setPosition(x + dx + dx * (w - 0.04)/2, Math.floor(this.camera.position.y - 1), z + dz + dz * (w - 0.04)/2)
+            // matrix.setPosition(x + dx, Math.floor(this.camera.position.y - 1), z + dz)
+          this.tempMesh.setMatrixAt(index++, matrix)
+          }
+        }
+      }
+
+    }
+
     this.tempMesh.instanceMatrix.needsUpdate = true
 
     // update collide

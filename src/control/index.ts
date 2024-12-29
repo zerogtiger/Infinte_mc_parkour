@@ -38,6 +38,7 @@ export default class Control {
     this.raycaster.far = 8
     this.far = this.player.body.height
 
+
     this.initRayCaster()
     this.initEventListeners()
   }
@@ -67,16 +68,16 @@ export default class Control {
   doubleTapThreshold: number = 300; // milliseconds
   isDoubleTap: boolean = false;
 
-  raycasterDown = [new THREE.Raycaster(), new THREE.Raycaster(),
-  new THREE.Raycaster(),
-  new THREE.Raycaster(), new THREE.Raycaster()]
+  raycasterDown: THREE.Raycaster[] = [];
   // new THREE.Raycaster(), new THREE.Raycaster(),
   // new THREE.Raycaster(), new THREE.Raycaster(),
-  raycasterUp = new THREE.Raycaster()
-  raycasterFront = new THREE.Raycaster()
-  raycasterBack = new THREE.Raycaster()
-  raycasterRight = new THREE.Raycaster()
-  raycasterLeft = new THREE.Raycaster()
+  raycasterUp: THREE.Raycaster[] = [];
+  raycasterFront: THREE.Raycaster[] = [];
+  raycasterBack: THREE.Raycaster[] = [];
+  raycasterRight: THREE.Raycaster[] = [];
+  raycasterLeft: THREE.Raycaster[] = [];
+
+  // playerRaycaster: THREE.Raycaster[][][]; // top/bottom, front/back, left/right
 
   tempMesh = new THREE.InstancedMesh(
     new THREE.BoxGeometry(1, 1, 1),
@@ -115,22 +116,40 @@ export default class Control {
   spaceHolding = false
 
   initRayCaster = () => {
-    this.raycasterUp.ray.direction = new THREE.Vector3(0, 1, 0)
-    for (const ray of this.raycasterDown) {
-      ray.ray.direction = new THREE.Vector3(0, -1, 0)
-      ray.far = this.player.body.height
-    }
-    // this.raycasterDown.ray.direction = new THREE.Vector3(0, -1, 0)
-    this.raycasterFront.ray.direction = new THREE.Vector3(1, 0, 0)
-    this.raycasterBack.ray.direction = new THREE.Vector3(-1, 0, 0)
-    this.raycasterLeft.ray.direction = new THREE.Vector3(0, 0, -1)
-    this.raycasterRight.ray.direction = new THREE.Vector3(0, 0, 1)
 
-    this.raycasterUp.far = 1.2
-    this.raycasterFront.far = this.player.body.width / 2
-    this.raycasterBack.far = this.player.body.width / 2
-    this.raycasterLeft.far = this.player.body.width / 2
-    this.raycasterRight.far = this.player.body.width / 2
+    for (let i = 0; i < 4; i++) {
+      this.raycasterDown[i] = new THREE.Raycaster();
+      this.raycasterUp[i] = new THREE.Raycaster();
+      this.raycasterFront[i] = new THREE.Raycaster();
+      this.raycasterBack[i] = new THREE.Raycaster();
+      this.raycasterLeft[i] = new THREE.Raycaster();
+      this.raycasterRight[i] = new THREE.Raycaster();
+
+      this.raycasterUp[i].ray.direction = new THREE.Vector3(0, 1, 0)
+      this.raycasterDown[i].ray.direction = new THREE.Vector3(0, -1, 0)
+      this.raycasterFront[i].ray.direction = new THREE.Vector3(1, 0, 0)
+      this.raycasterBack[i].ray.direction = new THREE.Vector3(-1, 0, 0)
+      this.raycasterLeft[i].ray.direction = new THREE.Vector3(0, 0, -1)
+      this.raycasterRight[i].ray.direction = new THREE.Vector3(0, 0, 1)
+
+      this.raycasterUp[i].far = 1.2
+      this.raycasterDown[i].far = this.player.body.height
+      this.raycasterFront[i].far = this.player.body.width / 2
+      this.raycasterBack[i].far = this.player.body.width / 2
+      this.raycasterLeft[i].far = this.player.body.width / 2
+      this.raycasterRight[i].far = this.player.body.width / 2
+    }
+
+    // for (const ray of this.raycasterDown) {
+    //   ray.ray.direction = new THREE.Vector3(0, -1, 0)
+    //   ray.far = this.player.body.height
+    // }
+    // this.raycasterUp.ray.direction = new THREE.Vector3(0, 1, 0)
+    // this.raycasterDown.ray.direction = new THREE.Vector3(0, -1, 0)
+    // this.raycasterFront.ray.direction = new THREE.Vector3(1, 0, 0)
+    // this.raycasterBack.ray.direction = new THREE.Vector3(-1, 0, 0)
+    // this.raycasterLeft.ray.direction = new THREE.Vector3(0, 0, -1)
+    // this.raycasterRight.ray.direction = new THREE.Vector3(0, 0, 1)
   }
 
   downKeys = {
@@ -632,39 +651,28 @@ export default class Control {
   }
 
   // collide checking
-  collideCheckAll = (
-    position: THREE.Vector3,
-    noise: Noise,
-    customBlocks: Block[],
-    far: number
-  ) => {
-    this.collideCheck(Side.down, position, noise, customBlocks, far)
-    this.collideCheck(Side.front, position, noise, customBlocks)
-    this.collideCheck(Side.back, position, noise, customBlocks)
-    this.collideCheck(Side.left, position, noise, customBlocks)
-    this.collideCheck(Side.right, position, noise, customBlocks)
-    this.collideCheck(Side.up, position, noise, customBlocks)
-    // if (this.leftCollide || this.rightCollide) {
-    //   this.camera.position.z = Math.round(this.camera.position.z * 10) / 10;
-    // }
-    // if (this.frontCollide || this.backCollide) {
-    //   this.camera.position.x = Math.round(this.camera.position.x * 10) / 10;
-    // }
-    // if (this.upCollide || this.downCollide) {
-    //   this.camera.position.y = Math.round(this.camera.position.y * 10) / 10;
-    // }
-  }
+  // collideCheckAll = (
+  //   position: THREE.Vector3,
+  //   noise: Noise,
+  //   customBlocks: Block[],
+  //   far: number
+  // ) => {
+  //   this.collideCheck(Side.down, position, noise, customBlocks, far)
+  //   // this.collideCheck(Side.front, position, noise, customBlocks)
+  //   // this.collideCheck(Side.back, position, noise, customBlocks)
+  //   // this.collideCheck(Side.left, position, noise, customBlocks)
+  //   // this.collideCheck(Side.right, position, noise, customBlocks)
+  //   // this.collideCheck(Side.up, position, noise, customBlocks)
+  // }
 
-  collideCheck = (
-    side: Side,
+  collideCheckAll = (
     position: THREE.Vector3,
     noise: Noise,
     customBlocks: Block[],
     far: number = this.player.body.width / 2
   ) => {
 
-    console.log(position)
-
+    // console.log(position)
     const matrix = new THREE.Matrix4()
     // const geometry = new THREE.BoxGeometry(this.player.body.width, this.player.body.width, 1);
     // geometry.translate(position.x, position.y - 1, position.z)
@@ -689,36 +697,41 @@ export default class Control {
     let x = Math.round(position.x)
     let z = Math.round(position.z)
 
-    switch (side) {
-      case Side.front:
-        this.raycasterFront.ray.origin = position
-        break
-      case Side.back:
-        this.raycasterBack.ray.origin = position
-        break
-      case Side.left:
-        this.raycasterLeft.ray.origin = position
-        break
-      case Side.right:
-        this.raycasterRight.ray.origin = position
-        break
-      case Side.down:
-        const w = this.player.body.width
-        const d = this.player.body.width
-        this.raycasterDown[0].ray.origin.set(position.x, position.y - 0, position.z)
-        this.raycasterDown[1].ray.origin.set(position.x - w / 2, position.y - 0, position.z - d / 2)
-        this.raycasterDown[2].ray.origin.set(position.x + w / 2, position.y - 0, position.z - d / 2)
-        this.raycasterDown[3].ray.origin.set(position.x - w / 2, position.y - 0, position.z + d / 2)
-        this.raycasterDown[4].ray.origin.set(position.x + w / 2, position.y - 0, position.z + d / 2)
+    const w = this.player.body.width
+    const d = this.player.body.width
 
-        for (const r of this.raycasterDown) {
-          r.far = far
-        }
-        break
-      case Side.up:
-        this.raycasterUp.ray.origin = new THREE.Vector3().copy(position)
-        this.raycasterUp.ray.origin.y--
-        break
+    this.raycasterFront[0].ray.origin.set(position.x, position.y, position.z - d / 2);
+    this.raycasterFront[1].ray.origin.set(position.x, position.y, position.z + d / 2);
+    this.raycasterFront[2].ray.origin.set(position.x, position.y - 1, position.z - d / 2);
+    this.raycasterFront[3].ray.origin.set(position.x, position.y - 1, position.z + d / 2);
+
+    this.raycasterBack[0].ray.origin.set(position.x, position.y, position.z - d / 2);
+    this.raycasterBack[1].ray.origin.set(position.x, position.y, position.z + d / 2);
+    this.raycasterBack[2].ray.origin.set(position.x, position.y - 1, position.z - d / 2);
+    this.raycasterBack[3].ray.origin.set(position.x, position.y - 1, position.z + d / 2);
+
+    this.raycasterLeft[0].ray.origin.set(position.x + w / 2, position.y, position.z);
+    this.raycasterLeft[1].ray.origin.set(position.x - w / 2, position.y, position.z);
+    this.raycasterLeft[2].ray.origin.set(position.x + w / 2, position.y - 1, position.z);
+    this.raycasterLeft[3].ray.origin.set(position.x - w / 2, position.y - 1, position.z);
+
+    this.raycasterRight[0].ray.origin.set(position.x + w / 2, position.y, position.z);
+    this.raycasterRight[1].ray.origin.set(position.x - w / 2, position.y, position.z);
+    this.raycasterRight[2].ray.origin.set(position.x + w / 2, position.y - 1, position.z);
+    this.raycasterRight[3].ray.origin.set(position.x - w / 2, position.y - 1, position.z);
+
+    this.raycasterUp[0].ray.origin.set(position.x - w / 2, position.y - 1, position.z - d / 2)
+    this.raycasterUp[1].ray.origin.set(position.x + w / 2, position.y - 1, position.z - d / 2)
+    this.raycasterUp[2].ray.origin.set(position.x - w / 2, position.y - 1, position.z + d / 2)
+    this.raycasterUp[3].ray.origin.set(position.x + w / 2, position.y - 1, position.z + d / 2)
+
+    this.raycasterDown[0].ray.origin.set(position.x - w / 2, position.y, position.z - d / 2)
+    this.raycasterDown[1].ray.origin.set(position.x + w / 2, position.y, position.z - d / 2)
+    this.raycasterDown[2].ray.origin.set(position.x - w / 2, position.y, position.z + d / 2)
+    this.raycasterDown[3].ray.origin.set(position.x + w / 2, position.y, position.z + d / 2)
+
+    for (const r of this.raycasterDown) {
+      r.far = far
     }
 
     // check custom blocks
@@ -779,70 +792,134 @@ export default class Control {
       }
     }
 
-    // // sneaking check
-    if (
-      this.player.mode === Mode.sneaking &&
-      y < Math.floor(this.camera.position.y - 2) &&
-      side !== Side.down &&
-      side !== Side.up
-    ) {
-      matrix.setPosition(x, Math.floor(this.camera.position.y - 1), z)
-      this.tempMesh.setMatrixAt(index++, matrix)
-    }
+    // sneaking doesn't fall off edge
+    // if (
+    //   this.player.mode === Mode.sneaking &&
+    //   y < Math.floor(this.camera.position.y - 2) &&
+    //   side !== Side.down &&
+    //   side !== Side.up
+    // ) {
+    //   matrix.setPosition(x, Math.floor(this.camera.position.y - 1), z)
+    //   this.tempMesh.setMatrixAt(index++, matrix)
+    // }
     this.tempMesh.instanceMatrix.needsUpdate = true
 
     // update collide
-    const origin = new THREE.Vector3(position.x, position.y - 1, position.z)
-    switch (side) {
-      case Side.front: {
-        const c1 = this.raycasterFront.intersectObject(this.tempMesh).length
-        this.raycasterFront.ray.origin = origin
-        const c2 = this.raycasterFront.intersectObject(this.tempMesh).length
-        c1 || c2 ? (this.frontCollide = true) : (this.frontCollide = false)
-        break
-      }
-      case Side.back: {
-        const c1 = this.raycasterBack.intersectObject(this.tempMesh).length
-        this.raycasterBack.ray.origin = origin
-        const c2 = this.raycasterBack.intersectObject(this.tempMesh).length
-        c1 || c2 ? (this.backCollide = true) : (this.backCollide = false)
-        break
-      }
-      case Side.left: {
-        const c1 = this.raycasterLeft.intersectObject(this.tempMesh).length
-        this.raycasterLeft.ray.origin = origin
-        const c2 = this.raycasterLeft.intersectObject(this.tempMesh).length
-        c1 || c2 ? (this.leftCollide = true) : (this.leftCollide = false)
-        break
-      }
-      case Side.right: {
-        const c1 = this.raycasterRight.intersectObject(this.tempMesh).length
-        this.raycasterRight.ray.origin = origin
-        const c2 = this.raycasterRight.intersectObject(this.tempMesh).length
-        c1 || c2 ? (this.rightCollide = true) : (this.rightCollide = false)
-        break
-      }
-      case Side.down: {
-        // Check all 4 rays for down collision
-        let collisionDetected = false;
-        // console.log("hi")
-        for (let i = 1; i <= 4; ++i) {
-          const r = this.raycasterDown[i];
-          if (r.intersectObject(this.tempMesh).length > 0) {
-            collisionDetected = true;
-            break; // Exit the loop once we detect a collision
-          }
-        }
-
-        this.downCollide = collisionDetected; // Set downCollide based on the result
-        break
-      }
-      case Side.up: {
-        const c1 = this.raycasterUp.intersectObject(this.tempMesh).length
-        c1 ? (this.upCollide = true) : (this.upCollide = false)
-        break
+    // const origin = new THREE.Vector3(position.x, position.y - 1, position.z)
+    this.frontCollide = false;
+    for (const r of this.raycasterFront) {
+      if (r.intersectObject(this.tempMesh).length > 0) {
+        this.frontCollide = true;
+        break; // Exit the loop once we detect a collision
       }
     }
+    this.backCollide = false;
+    for (const r of this.raycasterBack) {
+      if (r.intersectObject(this.tempMesh).length > 0) {
+        this.backCollide = true;
+        break; // Exit the loop once we detect a collision
+      }
+    }
+    this.leftCollide = false;
+    for (const r of this.raycasterLeft) {
+      if (r.intersectObject(this.tempMesh).length > 0) {
+        this.leftCollide = true;
+        break; // Exit the loop once we detect a collision
+      }
+    }
+    this.rightCollide = false;
+    for (const r of this.raycasterRight) {
+      if (r.intersectObject(this.tempMesh).length > 0) {
+        this.rightCollide = true;
+        break; // Exit the loop once we detect a collision
+      }
+    }
+    this.upCollide = false;
+    for (const r of this.raycasterUp) {
+      if (r.intersectObject(this.tempMesh).length > 0) {
+        this.upCollide = true;
+        break; // Exit the loop once we detect a collision
+      }
+    }
+    this.downCollide = false;
+    for (let i = 0; i < 4; ++i) {
+      const r = this.raycasterDown[i];
+      if (r.intersectObject(this.tempMesh).length > 0) {
+        this.downCollide = true;
+        break; // Exit the loop once we detect a collision
+      }
+    }
+    // if (this.leftCollide || this.rightCollide) {
+    //   this.camera.position.z = Math.round(this.camera.position.z * 10) / 10;
+    // }
+    // if (this.frontCollide || this.backCollide) {
+    //   this.camera.position.x = Math.round(this.camera.position.x * 10) / 10;
+    // }
+    // if (this.upCollide || this.downCollide) {
+    //   this.camera.position.y = Math.round(this.camera.position.y)
+    // }
+    // this.frontCollide = false;
+    // for (const r of this.raycasterFront) {
+    //   if (r.intersectObject(this.tempMesh).length > 0) {
+    //     this.frontCollide = true;
+    //     break; // Exit the loop once we detect a collision
+    //   }
+    // }
+    // switch (side) {
+    //   case Side.front: {
+    //     this.frontCollide = false;
+    //     for (const r of this.raycasterFront) {
+    //       if (r.intersectObject(this.tempMesh).length > 0) {
+    //         this.frontCollide = true;
+    //         break; // Exit the loop once we detect a collision
+    //       }
+    //     }
+    //     // const c1 = this.raycasterFront.intersectObject(this.tempMesh).length
+    //     // this.raycasterFront.ray.origin = origin
+    //     // const c2 = this.raycasterFront.intersectObject(this.tempMesh).length
+    //     // c1 || c2 ? (this.frontCollide = true) : (this.frontCollide = false)
+    //     break
+    //   }
+    //   case Side.back: {
+    //     const c1 = this.raycasterBack.intersectObject(this.tempMesh).length
+    //     this.raycasterBack.ray.origin = origin
+    //     const c2 = this.raycasterBack.intersectObject(this.tempMesh).length
+    //     c1 || c2 ? (this.backCollide = true) : (this.backCollide = false)
+    //     break
+    //   }
+    //   case Side.left: {
+    //     const c1 = this.raycasterLeft.intersectObject(this.tempMesh).length
+    //     this.raycasterLeft.ray.origin = origin
+    //     const c2 = this.raycasterLeft.intersectObject(this.tempMesh).length
+    //     c1 || c2 ? (this.leftCollide = true) : (this.leftCollide = false)
+    //     break
+    //   }
+    //   case Side.right: {
+    //     const c1 = this.raycasterRight.intersectObject(this.tempMesh).length
+    //     this.raycasterRight.ray.origin = origin
+    //     const c2 = this.raycasterRight.intersectObject(this.tempMesh).length
+    //     c1 || c2 ? (this.rightCollide = true) : (this.rightCollide = false)
+    //     break
+    //   }
+    //   case Side.down: {
+    //     // Check all 4 rays for down collision
+    //     this.downCollide = false;
+    //     // console.log("hi")
+    //     for (let i = 1; i <= 4; ++i) {
+    //       const r = this.raycasterDown[i];
+    //       if (r.intersectObject(this.tempMesh).length > 0) {
+    //         this.downCollide = true;
+    //         break; // Exit the loop once we detect a collision
+    //       }
+    //     }
+    //     break
+    //   }
+    //   case Side.up: {
+    //     const c1 = this.raycasterUp.intersectObject(this.tempMesh).length
+    //     c1 ? (this.upCollide = true) : (this.upCollide = false)
+    //     break
+    //   }
+    // }
   }
 
   update = () => {

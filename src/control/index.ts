@@ -295,7 +295,6 @@ export default class Control {
       case 'Shift':
         if (this.player.mode != Mode.flying) {
           if (this.player.mode === Mode.sprinting){
-
             this.updateFOV(this.camera.fov - 20)
             this.camera.updateProjectionMatrix()
             this.player.setMode(Mode.sneaking)
@@ -426,7 +425,7 @@ export default class Control {
           this.camera.position.setY(this.camera.position.y + 0.2)
           }
 
-        if (this.player.mode === Mode.walking) {
+        if (this.player.mode === Mode.walking || this.player.mode === Mode.sprinting) {
           return
         }
         this.velocity.y = 0

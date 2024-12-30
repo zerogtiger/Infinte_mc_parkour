@@ -15,17 +15,18 @@ body {
   font-display: swap;
 }
 
-.start {
-  background-image: url(/src/static/menu.jpeg);
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-}
+/*.start {*/
+/*  background-image: url(/src/static/menu.jpeg);*/
+/*  background-repeat: no-repeat;*/
+/*  background-size: 100% 100%;*/
+/*}*/
 
 .start #exit {
   display: none;
 }
 
 .menu {
+  background-image: url(/src/static/menu.jpg);
   z-index: 1;
   position: fixed;
   left: 0%;

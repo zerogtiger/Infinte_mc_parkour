@@ -19,10 +19,8 @@ export default class UI {
     document.body.appendChild(this.crossHair)
 
     // play
-    this.play?.addEventListener('click', () => {
-      if (this.play?.innerHTML === 'Play') {
-        this.onPlay()
 
+        this.onStart()
         // reset game
         terrain.noise.seed = Math.random()
         terrain.noise.stoneSeed = Math.random()
@@ -34,121 +32,90 @@ export default class UI {
         terrain.generate()
         terrain.camera.position.y = 40
         control.player.setMode(Mode.walking)
-      }
+
       !isMobile && control.control.lock()
+
+    // mode
+    this.modeInput?.addEventListener('input', (e: Event) => {
+      if (e.target instanceof HTMLInputElement) {
+        this.mode!.innerHTML = 'Mode: Infinite'     // temporary code (just for the text)
+        // add code to change mode...(add a boolean for the mode)
+        // this.mode!.innerHTML = `Mode: ${BOOLEAN ? 'Infinite' : 'Levels'}`
+      }
+
     })
 
-    // save load
-    this.save?.addEventListener('click', () => {
-      if (this.save?.innerHTML === 'Save and Exit') {
-        // save game
-        window.localStorage.setItem(
-          'block',
-          JSON.stringify(terrain.customBlocks)
-        )
-        window.localStorage.setItem('seed', JSON.stringify(terrain.noise.seed))
-
-        window.localStorage.setItem(
-          'position',
-          JSON.stringify({
-            x: terrain.camera.position.x,
-            y: terrain.camera.position.y,
-            z: terrain.camera.position.z
-          })
-        )
-
-        // ui update
-        this.onExit()
-        this.onSave()
-      } else {
-        // load game
-        terrain.noise.seed =
-          Number(window.localStorage.getItem('seed')) ?? Math.random()
-
-        const customBlocks =
-          (JSON.parse(
-            window.localStorage.getItem('block') || 'null'
-          ) as Block[]) ?? []
-
-        terrain.customBlocks = customBlocks
-        terrain.initBlocks()
-        terrain.generate()
-
-        const position =
-          (JSON.parse(window.localStorage.getItem('position') || 'null') as {
-            x: number
-            y: number
-            z: number
-          }) ?? null
-
-        position && (terrain.camera.position.x = position.x)
-        position && (terrain.camera.position.y = position.y)
-        position && (terrain.camera.position.z = position.z)
-
-        // ui update
-        this.onPlay()
-        this.onLoad()
-        !isMobile && control.control.lock()
+    // respawn
+    this.respawnInput?.addEventListener('input', (e: Event) => {
+      if (e.target instanceof HTMLInputElement) {
+        this.newRespawn!.innerHTML = 'New Respawn: Off'     // temporary code (just for the text)
+        // add code for respawn...(add a boolean for the respawn)
+        // this.newRespawn!.innerHTML = `New Respawn: ${BOOLEAN ? 'Off' : 'On'}`
       }
     })
 
-    // guide
-    this.feature?.addEventListener('click', () => {
-      this.features?.classList.remove('hidden')
-    })
-    this.back?.addEventListener('click', () => {
-      this.features?.classList.add('hidden')
-    })
 
-    // setting
-    this.setting?.addEventListener('click', () => {
-      this.settings?.classList.remove('hidden')
-    })
-    this.settingBack?.addEventListener('click', () => {
-      this.settings?.classList.add('hidden')
-    })
-
-    // render distance
-    this.distanceInput?.addEventListener('input', (e: Event) => {
-      if (this.distance && e.target instanceof HTMLInputElement) {
-        this.distance.innerHTML = `Render Distance: ${e.target.value}`
-      }
+    // leaderboard
+    this.leaderboard?.addEventListener('click', () => {
+      // this.leaderboard?.classList.remove('hidden')
     })
 
     // fov
     this.fovInput?.addEventListener('input', (e: Event) => {
       if (this.fov && e.target instanceof HTMLInputElement) {
-        this.fov.innerHTML = `Field of View: ${e.target.value}`
-        control.camera.fov = parseInt(e.target.value)
-        control.camera.updateProjectionMatrix()
+        this.fov.innerHTML = `FOV: Normal`
+        // should cycle through a bunch of set FOVs (zoom: 50, normal: 70, wide: 90, quake pro: 110)
       }
     })
 
-    // music
-    this.musicInput?.addEventListener('input', (e: Event) => {
-      if (this.fov && e.target instanceof HTMLInputElement) {
-        const disabled = e.target.value === '0'
-        control.audio.disabled = disabled
-        this.music!.innerHTML = `Music: ${disabled ? 'Off' : 'On'}`
+    // // fov
+    // this.fovInput?.addEventListener('input', (e: Event) => {
+    //   if (this.fov && e.target instanceof HTMLInputElement) {
+    //     this.fov.innerHTML = `FOV: ${e.target.value}`
+    //     control.camera.fov = parseInt(e.target.value)
+    //     control.camera.updateProjectionMatrix()
+    //   }
+    // })
+
+    //chunks
+    this.chunksInput?.addEventListener('input', (e: Event) => {
+      if (this.chunks && e.target instanceof HTMLInputElement) {
+        this.chunks.innerHTML = `Chunks: 4`
+        // const disabled = e.target.value === '0'
+        // control.audio.disabled = disabled
+        // this.chunks!.innerHTML = `Chunks: ${disabled ? '' : 'On'}`
+
       }
     })
 
-    // apply settings
-    this.settingBack?.addEventListener('click', () => {
-      if (this.distanceInput instanceof HTMLInputElement) {
-        terrain.distance = parseInt(this.distanceInput.value)
-        terrain.maxCount =
-          (terrain.distance * terrain.chunkSize * 2 + terrain.chunkSize) ** 2 +
-          500
 
-        terrain.initBlocks()
-        terrain.generate()
-        terrain.scene.fog = new THREE.Fog(
-          0x87ceeb,
-          1,
-          terrain.distance * 24 + 24
-        )
+    // audio
+    this.audioInput?.addEventListener('input', (e: Event) => {
+      if (this.audio && e.target instanceof HTMLInputElement) {
+        this.audio.innerHTML = `Audio: Music`
+        // const disabled = e.target.value === '0'
+        // control.audio.disabled = disabled
+        // this.chunks!.innerHTML = `Chunks: ${disabled ? '' : 'On'}`
       }
+    })
+
+    // done (apply settings)
+    this.done?.addEventListener('click', () => {
+      if (this.chunksInput instanceof HTMLInputElement) {
+        // terrain.distance = parseInt(this.chunksInput.value)
+        // terrain.maxCount =
+        //   (terrain.distance * terrain.chunkSize * 2 + terrain.chunkSize) ** 2 +
+        //   500
+        //
+        // terrain.initBlocks()
+        // terrain.generate()
+        // terrain.scene.fog = new THREE.Fog(
+        //   0x87ceeb,
+        //   1,
+        //   terrain.distance * 24 + 24
+        // )
+      }
+      this.onDone()
     })
 
     // menu and fullscreen
@@ -169,18 +136,18 @@ export default class UI {
     })
 
     // exit
-    this.exit?.addEventListener('click', () => {
-      this.onExit()
-    })
+    // this.exit?.addEventListener('click', () => {
+    //   this.onExit()
+    // })
 
     // play / pause handler
-    document.addEventListener('pointerlockchange', () => {
-      if (document.pointerLockElement) {
-        this.onPlay()
-      } else {
-        this.onPause()
-      }
-    })
+    // document.addEventListener('pointerlockchange', () => {
+    //   if (document.pointerLockElement) {
+    //     this.onPlay()
+    //   } else {
+    //     this.onPause()
+    //   }
+    // })
 
     // disable context menu
     document.addEventListener('contextmenu', e => {
@@ -202,84 +169,94 @@ export default class UI {
   crossHair = document.createElement('div')
 
   // buttons
-  play = document.querySelector('#play')
-  control = document.querySelector('#control')
-  setting = document.querySelector('#setting')
-  feature = document.querySelector('#feature')
-  back = document.querySelector('#back')
-  exit = document.querySelector('#exit')
-  save = document.querySelector('#save')
+  mode = document.querySelector('#mode')
+  modeInput = document.querySelector('#mode-input')
 
-  // modals
-  saveModal = document.querySelector('.save-modal')
-  loadModal = document.querySelector('.load-modal')
-  settings = document.querySelector('.settings')
-  features = document.querySelector('.features')
-  github = document.querySelector('.github')
+  newRespawn = document.querySelector('#new-respawn')
+  respawnInput = document.querySelector('#respawn-input')
 
-  // settings
-  distance = document.querySelector('#distance')
-  distanceInput = document.querySelector('#distance-input')
+  leaderboard = document.querySelector('#leaderboard')
 
   fov = document.querySelector('#fov')
   fovInput = document.querySelector('#fov-input')
 
-  music = document.querySelector('#music')
-  musicInput = document.querySelector('#music-input')
+  chunks = document.querySelector('#chunks')
+  chunksInput = document.querySelector('#chunks-input')
 
-  settingBack = document.querySelector('#setting-back')
+  audio = document.querySelector('#audio')
+  audioInput = document.querySelector('#audio-input')
 
-  onPlay = () => {
+  done = document.querySelector('#done')
+
+
+  // modals
+  // saveModal = document.querySelector('.save-modal')
+  // loadModal = document.querySelector('.load-modal')
+  // settings = document.querySelector('.settings')
+  features = document.querySelector('.features')
+  github = document.querySelector('.github')
+
+  // settings
+  // distance = document.querySelector('#distance')
+  // distanceInput = document.querySelector('#distance-input')
+  //
+  // fov = document.querySelector('#fov')
+  // fovInput = document.querySelector('#fov-input')
+  //
+  // music = document.querySelector('#music')
+  // musicInput = document.querySelector('#music-input')
+  //
+  // settingBack = document.querySelector('#setting-back')
+
+  onStart = () => {
     isMobile && this.joystick.init()
     this.menu?.classList.add('hidden')
     this.menu?.classList.remove('start')
-    this.play && (this.play.innerHTML = 'Resume')
+    // this.play && (this.play.innerHTML = 'Resume')
     this.crossHair.classList.remove('hidden')
     this.github && this.github.classList.add('hidden')
-    this.feature?.classList.add('hidden')
+    // this.feature?.classList.add('hidden')
   }
 
   onPause = () => {
     this.menu?.classList.remove('hidden')
     this.crossHair.classList.add('hidden')
-    this.save && (this.save.innerHTML = 'Save and Exit')
+    // this.save && (this.save.innerHTML = 'Save and Exit')
     this.github && this.github.classList.remove('hidden')
   }
 
-  onExit = () => {
-    this.menu?.classList.add('start')
-    this.play && (this.play.innerHTML = 'Play')
-    this.save && (this.save.innerHTML = 'Load Game')
-    this.feature?.classList.remove('hidden')
+  onDone = () => {
+    this.menu?.classList.add('hidden')
+    this.onStart()
   }
-
-  onSave = () => {
-    this.saveModal?.classList.remove('hidden')
-    setTimeout(() => {
-      this.saveModal?.classList.add('show')
-    })
-    setTimeout(() => {
-      this.saveModal?.classList.remove('show')
-    }, 1000)
-
-    setTimeout(() => {
-      this.saveModal?.classList.add('hidden')
-    }, 1350)
-  }
-
-  onLoad = () => {
-    this.loadModal?.classList.remove('hidden')
-    setTimeout(() => {
-      this.loadModal?.classList.add('show')
-    })
-    setTimeout(() => {
-      this.loadModal?.classList.remove('show')
-    }, 1000)
-
-    setTimeout(() => {
-      this.loadModal?.classList.add('hidden')
-    }, 1350)
-  }
+  //
+  // onSave = () => {
+  //   this.saveModal?.classList.remove('hidden')
+  //   setTimeout(() => {
+  //     this.saveModal?.classList.add('show')
+  //   })
+  //   setTimeout(() => {
+  //     this.saveModal?.classList.remove('show')
+  //   }, 1000)
+  //
+  //   setTimeout(() => {
+  //     this.saveModal?.classList.add('hidden')
+  //   }, 1350)
+  // }
+  //
+  // onLoad = () => {
+  //   this.loadModal?.classList.remove('hidden')
+  //   setTimeout(() => {
+  //     this.loadModal?.classList.add('show')
+  //   })
+  //   setTimeout(() => {
+  //     this.loadModal?.classList.remove('show')
+  //   }, 1000)
+  //
+  //   setTimeout(() => {
+  //     this.loadModal?.classList.add('hidden')
+  //   }, 1350)
+  // }
 
   update = () => {
     this.fps.update()

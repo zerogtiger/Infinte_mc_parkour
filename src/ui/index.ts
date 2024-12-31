@@ -141,13 +141,13 @@ export default class UI {
     // })
 
     // play / pause handler
-    // document.addEventListener('pointerlockchange', () => {
-    //   if (document.pointerLockElement) {
-    //     this.onPlay()
-    //   } else {
-    //     this.onPause()
-    //   }
-    // })
+    document.addEventListener('pointerlockchange', () => {
+      if (document.pointerLockElement) {
+        this.onStart()
+      } else {
+        this.onPause()
+      }
+    })
 
     // disable context menu
     document.addEventListener('contextmenu', e => {
@@ -222,7 +222,7 @@ export default class UI {
     this.menu?.classList.remove('hidden')
     this.crossHair.classList.add('hidden')
     // this.save && (this.save.innerHTML = 'Save and Exit')
-    this.github && this.github.classList.remove('hidden')
+    // this.github && this.github.classList.remove('hidden')
   }
 
   onDone = () => {

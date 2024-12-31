@@ -35,12 +35,23 @@
       </svg>
     </a>
     <div class="menu start">
-      <button id="play" class="button">Play</button>
-      <button id="save" class="button">Load Game</button>
-      <button id="setting" class="button">Setting</button>
-      <button id="feature" class="button">Guide</button>
-      <button id="exit" class="button">Exit</button>
-      <footer class="footer">© 2022 Yulei Zhu</footer>
+      <div class="input-container">
+        <label for="seedInput" class="menu-label">Seed for the World Generator</label>
+        <input type="text" id="seedInput" class="menu-input" placeholder="Enter Seed" />
+        <label class="menu-label">Leave blank for a random seed</label>
+      </div>
+
+      <div class="button-container">
+        <button id="mode" class="button">Mode: Infinite</button>
+        <button id="newRespawn" class="button">New Respawn: Off</button>
+        <button id="leaderboard" class="button">Leaderboard</button>
+        <button id="fov" class="button">FOV: 70</button>
+        <button id="chunks" class="button">Chunks: 4</button>
+        <button id="audio" class="button">Audio: Music</button>
+      </div>
+
+      <button id="done" class="button">Done</button>
+
     </div>
 
     <div class="features hidden">
@@ -58,36 +69,36 @@
       <button id="back" class="button">Back</button>
     </div>
 
-    <div class="settings hidden">
-      <p id="distance">Render Distance: 3</p>
-      <input
-        type="range"
-        id="distance-input"
-        min="1"
-        max="8"
-        value="3"
-        step="1"
-      />
+<!--    <div class="settings hidden">-->
+<!--      <p id="distance">Render Distance: 3</p>-->
+<!--      <input-->
+<!--        type="range"-->
+<!--        id="distance-input"-->
+<!--        min="1"-->
+<!--        max="8"-->
+<!--        value="3"-->
+<!--        step="1"-->
+<!--      />-->
 
-      <p id="fov">Field of View: 70</p>
-      <input
-        type="range"
-        id="fov-input"
-        min="40"
-        max="100"
-        value="70"
-        step="1"
-      />
+<!--      <p id="fov">Field of View: 70</p>-->
+<!--      <input-->
+<!--        type="range"-->
+<!--        id="fov-input"-->
+<!--        min="40"-->
+<!--        max="100"-->
+<!--        value="70"-->
+<!--        step="1"-->
+<!--      />-->
 
-      <p id="music">Music: On</p>
-      <input type="range" id="music-input" min="0" max="1" value="1" step="1" />
+<!--      <p id="music">Music: On</p>-->
+<!--      <input type="range" id="music-input" min="0" max="1" value="1" step="1" />-->
 
-      <br />
-      <br />
-      <button id="setting-back" class="button">Apply</button>
-    </div>
+<!--      <br />-->
+<!--      <br />-->
+<!--      <button id="setting-back" class="button">Apply</button>-->
+<!--    </div>-->
 
-    <div class="save-modal hidden">Game Saved!</div>
-    <div class="load-modal hidden">Game Loaded!</div>
+<!--    <div class="save-modal hidden">Game Saved!</div>-->
+<!--    <div class="load-modal hidden">Game Loaded!</div>-->
   </body>
 </html>

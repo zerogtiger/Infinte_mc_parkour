@@ -20,20 +20,19 @@ export default class UI {
 
     // play
 
-        this.onStart()
-        // reset game
-        terrain.noise.seed = Math.random()
-        terrain.noise.stoneSeed = Math.random()
-        terrain.noise.treeSeed = Math.random()
-        terrain.noise.coalSeed = Math.random()
-        terrain.noise.leafSeed = Math.random()
-        terrain.customBlocks = []
-        terrain.initBlocks()
-        terrain.generate()
-        terrain.camera.position.y = 40
-        control.player.setMode(Mode.walking)
-
-      !isMobile && control.control.lock()
+    this.onStart()
+    // reset game
+    terrain.noise.seed = Math.random()
+    terrain.noise.stoneSeed = Math.random()
+    terrain.noise.treeSeed = Math.random()
+    terrain.noise.coalSeed = Math.random()
+    terrain.noise.leafSeed = Math.random()
+    terrain.customBlocks = []
+    terrain.initBlocks()
+    terrain.generate()
+    terrain.camera.position.y = 40
+    control.player.setMode(Mode.walking)
+    !isMobile && control.control.lock()
 
     // mode
     this.modeInput?.addEventListener('input', (e: Event) => {
@@ -64,6 +63,7 @@ export default class UI {
     this.fovInput?.addEventListener('input', (e: Event) => {
       if (this.fov && e.target instanceof HTMLInputElement) {
         this.fov.innerHTML = `FOV: Normal`
+
         // should cycle through a bunch of set FOVs (zoom: 50, normal: 70, wide: 90, quake pro: 110)
       }
     })
@@ -115,7 +115,8 @@ export default class UI {
         //   terrain.distance * 24 + 24
         // )
       }
-      this.onDone()
+      !isMobile && control.control.lock()
+      this.onStart()
     })
 
     // menu and fullscreen

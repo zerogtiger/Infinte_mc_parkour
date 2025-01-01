@@ -43,6 +43,9 @@ export default class Control {
     this.initEventListeners()
   }
 
+  // constants
+  static FOVS = [50, 70, 90, 110]
+
   // core properties
   scene: THREE.Scene
   camera: THREE.PerspectiveCamera
@@ -51,6 +54,7 @@ export default class Control {
   control: PointerLockControls
   audio: Audio
   velocity = new THREE.Vector3(0, 0, 0)
+  fovInput = 1
 
   intersect: Vector3 = new THREE.Vector3;
 
@@ -212,7 +216,7 @@ export default class Control {
           this.player.setMode(Mode.sprinting);
           this.updateFOV(this.camera.fov + 20);
           this.camera.updateProjectionMatrix();
-          console.log('sprinting w/ 2x w');
+          console.log(this.camera.fov);
         }
         else if (e.ctrlKey && !this.isDoubleTap && !this.frontCollide) {
           this.player.setMode(Mode.sprinting)
@@ -222,7 +226,6 @@ export default class Control {
         }
         this.downKeys.w = true
         this.velocity.x = this.player.speed
-        console.log(this.player.speed)
         break
       case 's':
       case 'S':
@@ -292,7 +295,6 @@ export default class Control {
       case 'Shift':
         if (this.player.mode != Mode.flying) {
           if (this.player.mode === Mode.sprinting){
-
             this.updateFOV(this.camera.fov - 20)
             this.camera.updateProjectionMatrix()
             this.player.setMode(Mode.sneaking)
@@ -373,6 +375,10 @@ export default class Control {
           this.player.setMode(Mode.walking)
           this.updateFOV(this.camera.fov - 20)
           this.camera.updateProjectionMatrix()
+          console.log(this.camera.fov)
+        }
+        if (Date.now() - this.lastWPressTime < 200) {
+          this.updateFOV(Control.FOVS[this.fovInput])
         }
         this.downKeys.w = false
         this.velocity.x = 0
@@ -396,7 +402,7 @@ export default class Control {
 
         this.jumpInterval && clearInterval(this.jumpInterval)
         this.spaceHolding = false
-        if (this.player.mode === Mode.walking) {
+        if (this.player.mode === Mode.walking || this.player.mode === Mode.sprinting) {
           return
         }
         this.velocity.y = 0
@@ -419,7 +425,7 @@ export default class Control {
           this.camera.position.setY(this.camera.position.y + 0.2)
           }
 
-        if (this.player.mode === Mode.walking) {
+        if (this.player.mode === Mode.walking || this.player.mode === Mode.sprinting) {
           return
         }
         this.velocity.y = 0

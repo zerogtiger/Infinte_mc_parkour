@@ -20,6 +20,7 @@ export default class UI {
 
     // play
         // reset game
+    this.onStart()
         terrain.noise.seed = Math.random()
         terrain.noise.stoneSeed = Math.random()
         terrain.noise.treeSeed = Math.random()
@@ -33,7 +34,7 @@ export default class UI {
     !isMobile && control.control.lock()
 
     // mode
-    this.modeInput?.addEventListener('input', (e: Event) => {
+    this.mode?.addEventListener('input', (e: Event) => {
       if (e.target instanceof HTMLInputElement) {
         this.mode!.innerHTML = 'Mode: Infinite'     // temporary code (just for the text)
         // add code to change mode...(add a boolean for the mode)
@@ -43,7 +44,7 @@ export default class UI {
     })
 
     // respawn
-    this.respawnInput?.addEventListener('input', (e: Event) => {
+    this.newRespawn?.addEventListener('input', (e: Event) => {
       if (e.target instanceof HTMLInputElement) {
         this.newRespawn!.innerHTML = 'New Respawn: Off'     // temporary code (just for the text)
         // add code for respawn...(add a boolean for the respawn)
@@ -58,11 +59,15 @@ export default class UI {
     })
 
     // fov
-    this.fovInput?.addEventListener('input', (e: Event) => {
-      if (this.fov && e.target instanceof HTMLInputElement) {
-        this.fov.innerHTML = `FOV: Normal`
+    this.fov?.addEventListener('click', () => {
+      if (this.fov) {
+        // this.fov.innerHTML = `FOV: Normal`
 
         // should cycle through a bunch of set FOVs (zoom: 50, normal: 70, wide: 90, quake pro: 110)
+        control.fovInput = (control.fovInput + 1) % 4
+        this.fov.innerHTML = `FOV: ${Control.FOVS[control.fovInput]}`;
+        control.camera.fov = Control.FOVS[control.fovInput]
+        control.camera.updateProjectionMatrix()
       }
     })
 
@@ -76,7 +81,7 @@ export default class UI {
     // })
 
     //chunks
-    this.chunksInput?.addEventListener('input', (e: Event) => {
+    this.chunks?.addEventListener('input', (e: Event) => {
       if (this.chunks && e.target instanceof HTMLInputElement) {
         this.chunks.innerHTML = `Chunks: 4`
         // const disabled = e.target.value === '0'
@@ -88,7 +93,7 @@ export default class UI {
 
 
     // audio
-    this.audioInput?.addEventListener('input', (e: Event) => {
+    this.audio?.addEventListener('input', (e: Event) => {
       if (this.audio && e.target instanceof HTMLInputElement) {
         this.audio.innerHTML = `Audio: Music`
         // const disabled = e.target.value === '0'
@@ -99,7 +104,7 @@ export default class UI {
 
     // done (apply settings)
     this.done?.addEventListener('click', () => {
-      if (this.chunksInput instanceof HTMLInputElement) {
+      if (this.chunks instanceof HTMLInputElement) {
         // terrain.distance = parseInt(this.chunksInput.value)
         // terrain.maxCount =
         //   (terrain.distance * terrain.chunkSize * 2 + terrain.chunkSize) ** 2 +
@@ -169,21 +174,21 @@ export default class UI {
 
   // buttons
   mode = document.querySelector('#mode')
-  modeInput = document.querySelector('#mode-input')
+  // modeInput = document.querySelector('#mode-input')
 
   newRespawn = document.querySelector('#new-respawn')
-  respawnInput = document.querySelector('#respawn-input')
+  // respawnInput = document.querySelector('#respawn-input')
 
   leaderboard = document.querySelector('#leaderboard')
 
   fov = document.querySelector('#fov')
-  fovInput = document.querySelector('#fov-input')
+  // fovInput = document.querySelector('#fov-input')
 
   chunks = document.querySelector('#chunks')
-  chunksInput = document.querySelector('#chunks-input')
+  // chunksInput = document.querySelector('#chunks-input')
 
   audio = document.querySelector('#audio')
-  audioInput = document.querySelector('#audio-input')
+  // audioInput = document.querySelector('#audio-input')
 
   done = document.querySelector('#done')
 

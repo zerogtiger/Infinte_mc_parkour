@@ -54,7 +54,7 @@ export default class Control {
   control: PointerLockControls
   audio: Audio
   velocity = new THREE.Vector3(0, 0, 0)
-  fovInput = 1
+  fovInput = 0
 
   intersect: Vector3 = new THREE.Vector3;
 

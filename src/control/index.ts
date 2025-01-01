@@ -136,10 +136,10 @@ export default class Control {
 
       this.raycasterUp[i].far = 1.2
       this.raycasterDown[i].far = this.player.body.height
-      this.raycasterFront[i].far = this.player.body.width / 2
-      this.raycasterBack[i].far = this.player.body.width / 2
-      this.raycasterLeft[i].far = this.player.body.width / 2
-      this.raycasterRight[i].far = this.player.body.width / 2
+      this.raycasterFront[i].far = this.player.body.width / 2 + 0.07
+      this.raycasterBack[i].far = this.player.body.width / 2 + 0.07
+      this.raycasterLeft[i].far = this.player.body.width / 2 + 0.07
+      this.raycasterRight[i].far = this.player.body.width / 2 + 0.07
     }
 
     // for (const ray of this.raycasterDown) {

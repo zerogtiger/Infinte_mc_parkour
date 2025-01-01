@@ -57,8 +57,8 @@ export default class Parkour {
 
   constructor(noise: Noise, start_x: number, start_z: number) {
     this.noise = noise;
-    this.lastPosGen = { x: start_x, y: this.getY(start_x, start_z) + 14, z: start_z }
-    this.mapOfCoords.set(`${this.lastPosGen.x},${this.lastPosGen.z}`, this.getY(this.lastPosGen.x, this.lastPosGen.z) + 15)
+    this.lastPosGen = { x: start_x, y: this.getY(start_x, start_z) + 16, z: start_z }
+    this.mapOfCoords.set(`${this.lastPosGen.x},${this.lastPosGen.z}`, this.getY(this.lastPosGen.x, this.lastPosGen.z) + 16)
 
     const seed = this.cyrb128(this.noise.seed.toString());
     this.rand = this.sfc32(seed[0], seed[1], seed[2], seed[3])

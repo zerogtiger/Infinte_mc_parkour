@@ -30,6 +30,8 @@ export default class UI {
         terrain.initBlocks()
         terrain.generate()
         terrain.camera.position.y = 60
+        control.camera.fov = 70
+        control.camera.updateProjectionMatrix()
         control.player.setMode(Mode.walking)
     !isMobile && control.control.lock()
 

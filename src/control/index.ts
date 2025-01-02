@@ -55,6 +55,7 @@ export default class Control {
   audio: Audio
   velocity = new THREE.Vector3(0, 0, 0)
   fovInput = 1
+  tween = new Tween({})
 
   intersect: Vector3 = new THREE.Vector3;
 
@@ -66,6 +67,12 @@ export default class Control {
   downCollide = true
   upCollide = false
   isJumping = false
+
+  // friction + gravity
+  GRAVITY = 25;  // m/s² (per tick)
+  TERMINAL_VELOCITY = 50;  // blocks/tick (falling speed)
+  AIR_DRAG = 0.99;  // Horizontal air drag
+  GROUND_FRICTION = 0.91;
 
   // double tap 'w' properties
   lastWPressTime: number = 0;
@@ -161,7 +168,7 @@ export default class Control {
     s: false,
   }
   setMovementHandler = (e: KeyboardEvent) => {
-
+    if (this.tween.isPlaying()) this.tween.stop()
     if (e.repeat) {
       if (this.player.mode === Mode.walking && (e.key == 'w' || e.key == 'W') && !this.frontCollide) {
         if (e.ctrlKey) {
@@ -226,6 +233,7 @@ export default class Control {
         }
         this.downKeys.w = true
         this.velocity.x = this.player.speed
+          console.log(this.camera.fov)
         break
       case 's':
       case 'S':
@@ -243,7 +251,6 @@ export default class Control {
         this.velocity.z = this.player.speed
         break
       case ' ':
-
         if (this.player.mode === Mode.walking) {
           // jump
           if (!this.isJumping) {
@@ -303,15 +310,14 @@ export default class Control {
               this.jumpInterval = setInterval(() => {
                 this.setMovementHandler(e)
               }, 120)
-              if (!this.isJumping) {
-                this.velocity.y = 8 * 0.85
-                this.isJumping = true
-                this.downCollide = false
-                this.far = 0
-                setTimeout(() => {
-                  this.far = this.player.body.height
-                }, 300)
-              }
+            } else if (!this.isJumping && e.code === 'Space') {
+              this.velocity.y = 8 * 0.85
+              this.isJumping = true
+              this.downCollide = false
+              this.far = 0
+              setTimeout(() => {
+                this.far = this.player.body.height
+              }, 300)
             }
           }
           if (this.player.mode === Mode.walking || this.player.mode === Mode.sneaking) {
@@ -321,15 +327,14 @@ export default class Control {
               this.jumpInterval = setInterval(() => {
                 this.setMovementHandler(e)
               }, 120)
-              if (!this.isJumping) {
-                this.velocity.y = 8 * 0.85
-                this.isJumping = true
-                this.downCollide = false
-                this.far = 0
-                setTimeout(() => {
-                  this.far = this.player.body.height
-                }, 300)
-              }
+            } else if (!this.isJumping && e.code === 'Space') {
+              this.velocity.y = 8 * 0.85
+              this.isJumping = true
+              this.downCollide = false
+              this.far = 0
+              setTimeout(() => {
+                this.far = this.player.body.height
+              }, 300)
             }
             if (this.downKeys.w) {
               this.velocity.x = this.player.speed
@@ -381,25 +386,29 @@ export default class Control {
           this.updateFOV(Control.FOVS[this.fovInput])
         }
         this.downKeys.w = false
-        this.velocity.x = 0
+        if (this.player.mode === Mode.sneaking)  this.decelerateX(0.05)
+        else this.decelerateX(0.17)
+          this.velocity.x = 0; this.velocity.x = 0
         break
       case 's':
       case 'S':
         this.downKeys.s = false
-        this.velocity.x = 0
+        if (this.player.mode === Mode.sneaking)  this.decelerateX(0.05)
+        else this.decelerateX(0.17); this.velocity.x = 0
         break
       case 'a':
       case 'A':
         this.downKeys.a = false
-        this.velocity.z = 0
+        if (this.player.mode === Mode.sneaking)  this.decelerateZ(0.05)
+        else this.decelerateZ(0.17); this.velocity.z = 0
         break
       case 'd':
       case 'D':
         this.downKeys.d = false
-        this.velocity.z = 0
+        if (this.player.mode === Mode.sneaking)  this.decelerateZ(0.05)
+        else this.decelerateZ(0.17); this.velocity.z = 0
         break
       case ' ':
-
         this.jumpInterval && clearInterval(this.jumpInterval)
         this.spaceHolding = false
         if (this.player.mode === Mode.walking || this.player.mode === Mode.sprinting) {
@@ -454,6 +463,47 @@ export default class Control {
     animate()
   }
 
+  decelerateX(dt: number) {
+    const tweenData = { x: this.velocity.x};
+    if (this.tween.isPlaying()) this.tween.stop()
+
+    // Create the tween
+    this.tween = new Tween(tweenData)
+        .to({ x: 0}, dt * 1000)  // Time in ms to reach zero
+        .easing(Easing.Quadratic.InOut)  // Easing function for smooth deceleration
+        .onUpdate(() => {
+          this.velocity.x = tweenData.x;  // Update velocity.x
+        })
+        .start();
+    const t = this.tween
+
+    // Animation loop to update the tween
+    function animate() {
+
+      requestAnimationFrame(animate);
+      t.update();
+    }
+    animate();
+  }
+
+  decelerateZ(dt: number) {
+    if (this.tween.isPlaying()) this.tween.stop()
+    const tweenData = { z: this.velocity.z};
+    this.tween = new Tween(tweenData)
+        .to({ z: 0}, dt * 1000)  // Time in ms to reach zero
+        .easing(Easing.Quadratic.InOut)
+        .onUpdate(() => {
+          this.velocity.z = tweenData.z;
+        })
+        .start();
+    const t = this.tween
+    // Animation loop to update the tween
+    function animate() {
+      requestAnimationFrame(animate);
+      t.update();
+    }
+    animate();
+  }
 
   mousedownHandler = (e: MouseEvent) => {
     e.preventDefault()
@@ -1011,6 +1061,24 @@ export default class Control {
   update = () => {
     this.p1 = performance.now()
     const delta = (this.p1 - this.p2) / 1000
+
+    const airDrag = 0.13;
+
+    // Check if the player is airborne (not grounded)
+    const isAirborne = this.isJumping  // Simple check if the player is off the ground (adjust as needed)
+
+    // Apply air drag when the player is airborne (with delta time)
+    if (isAirborne && this.player.mode === Mode.walking) {
+      // Horizontal drag (applied to both x and z velocities)
+      if (Math.abs(this.velocity.x) > 0.01) {
+        this.velocity.x *= Math.pow(airDrag, delta);  // Apply air drag with delta time
+      }
+      if (Math.abs(this.velocity.z) > 0.01) {
+        this.velocity.z *= Math.pow(airDrag, delta);  // Apply air drag with delta time
+      }
+    }
+
+
     if (
       // dev mode
       this.player.mode === Mode.flying
